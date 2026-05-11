@@ -148,6 +148,18 @@
         }
       ]
     },
+    "keybindings": [
+      {
+        "command": "xsharp.buildProject",
+        "key": "ctrl+shift+b",
+        "when": "resourceLangId == xsharp"
+      },
+      {
+        "command": "xsharp.runProject",
+        "key": "ctrl+f5",
+        "when": "resourceLangId == xsharp"
+      }
+    ],
     "debuggers": [
       {
         "type": "xsharp",

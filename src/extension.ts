@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 
 
-import { parseBuildErrors } from './utils/parseErrors';
 import { registerBuildCommand } from './commands/buildCommand';
 import { registerClearDiagnostics } from './commands/clearDiagnosticsCommand';
 import { registerRunCommand } from './commands/runCommand';
@@ -15,10 +14,12 @@ import { registerLaunchConfig } from './commands/launchConfig';
 import { registerDebugAdapter } from './commands/debugAdapter';
 
 export let diagnosticCollection: vscode.DiagnosticCollection;
-
+export let buildOutputChannel: vscode.OutputChannel;
 
 export function activate(context: vscode.ExtensionContext) {
   diagnosticCollection = vscode.languages.createDiagnosticCollection('xsharp');
+  buildOutputChannel = vscode.window.createOutputChannel('XSharp Build');
+  context.subscriptions.push(buildOutputChannel);
   console.log('XSharp extension activated');
   registerLSPClient(context);
 
@@ -46,7 +47,6 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
   diagnosticCollection.clear();
   diagnosticCollection.dispose();
-
   deactivateLSPClient();
 }
 

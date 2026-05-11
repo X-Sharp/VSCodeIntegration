@@ -6,6 +6,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+- Dedicated **XSharp Build** output channel showing full `dotnet build` output
+- Keyboard shortcuts: `Ctrl+Shift+B` to build, `Ctrl+F5` to run (when an XSharp file is active)
+- Quick-pick project selector when the workspace contains multiple `.xsproj` files
+- **Open Folder of Active File** now reveals the file in the OS file explorer instead of replacing the workspace
+
 ### Fixed
 - `lateBinding` checkbox was never pre-checked in the project configurator (key case mismatch)
 - `modernSyntax` was not included in the save payload and was never written to the `.xsproj`

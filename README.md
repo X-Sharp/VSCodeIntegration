@@ -6,13 +6,14 @@ The extension and its settings are available via the command palette of Visual S
 
 ## Features
 
-- It offers commands and context menus to build and/or run XSharp projects from within Visual Studio Code by running the **dotnet build** and **dotnet run** commands.  
-The project must be contained in a folder, and a file with the name of the folder with **.xsproj** extension will be the Project File.  
-Be carefull that the **FolderName** and the **ProjectName** must be the same name, otherwise it will not work properly.  
-The result of the build will appear in the *Problems* tab of Visual Studio Code.  
-- You can define some settings for your **.xsproj** file (more to come)  
+- Build and run XSharp projects directly from VS Code via **dotnet build** / **dotnet run**.
+  Build output appears in the dedicated **XSharp Build** output channel and errors/warnings are reported in the **Problems** panel.
+- Keyboard shortcuts: `Ctrl+Shift+B` to build, `Ctrl+F5` to run (active when an XSharp file is open).
+- In workspaces with multiple `.xsproj` files, a quick-pick menu lets you choose which project to build.
+- Configure project settings (dialect, output type, compiler flags) via the **Configure XSharp Project** panel.
+- **Open Folder of Active File** reveals the current file in the OS file explorer.
 
-- Starting from Version 0.4.0, the package integrate a basic LSP Client that communicates with the [xsharp-lsp-server](https://github.com/fforay/xsharp-lsp-server). The installer (.vsix) will contain the XSharpLanguageServer.exe. The server must be **published** as a self-contained EXE and put into the **server** folder before creating the vsix file.
+- Starting from Version 0.4.0, the package integrates a basic LSP Client that communicates with the [xsharp-lsp-server](https://github.com/fforay/xsharp-lsp-server). The installer (.vsix) will contain the XSharpLanguageServer.exe. The server must be **published** as a self-contained EXE and put into the **server** folder before creating the vsix file.
 
 ## Requirements
 
