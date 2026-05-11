@@ -1,9 +1,32 @@
 
 
 
-export function getConfigProjectHtml(values: Record<string, string>): string {
+export function getConfigProjectHtml(values: Record<string, string>, nonce: string): string {
+  const stateJson = JSON.stringify({
+    dialect: values.dialect,
+    outputType: values.outputType,
+    lateBinding: values.lateBinding,
+    namedArgs: values.namedArgs,
+    unsafeCode: values.unsafeCode,
+    caseSensitive: values.caseSensitive,
+    initLocals: values.initLocals,
+    overflowEx: values.overflowEx,
+    zeroBasedArrays: values.zeroBasedArrays,
+    enforceSelf: values.enforceSelf,
+    allowDot: values.allowDot,
+    nullable: values.nullable,
+    enforceVirtualOverride: values.enforceVirtualOverride,
+    allowOldStyle: values.allowOldStyle,
+    modernSyntax: values.modernSyntax,
+  });
+
   return `
-    <html>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
+    </head>
     <body>
       <h2>XSharp Project Settings</h2>
       <hr>
@@ -77,37 +100,20 @@ export function getConfigProjectHtml(values: Record<string, string>): string {
         <input type="checkbox" id="allowOldStyle" ${values.allowOldStyle === 'true' ? 'checked' : ''}>
         Allow Old Style assignments
       </label>
-      <br>      
+      <br>
       <label>
         <input type="checkbox" id="modernSyntax" ${values.modernSyntax === 'true' ? 'checked' : ''}>
         Modern Syntax
       </label>
-      <br>      
-      
+      <br>
+
       <br>
       <button id="reset">Reset</button>
       <button id="save">Save</button>
 
-      <script>
+      <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
-        const state = {
-          dialect: "${values.dialect}",
-          outputType: "${values.outputType}",
-         
-          lateBinding: "${values.lateBinding}",
-          namedArgs: "${values.namedArgs}",
-          unsafeCode: "${values.unsafeCode}",
-          caseSensitive: "${values.caseSensitive}",
-          initLocals: "${values.initLocals}",
-          overflowEx: "${values.overflowEx}",
-          zeroBasedArrays: "${values.zeroBasedArrays}",
-          enforceSelf: "${values.enforceSelf}",
-          allowDot: "${values.allowDot}",
-          nullable: "${values.nullable}",
-          enforceVirtualOverride: "${values.enforceVirtualOverride}",
-          allowOldStyle: "${values.allowOldStyle}",
-          modernSyntax: "${values.modernSyntax}"
-        };
+        const state = ${stateJson};
         vscode.setState(state);
 
         document.getElementById('reset').addEventListener('click', () => {
@@ -150,8 +156,10 @@ export function getConfigProjectHtml(values: Record<string, string>): string {
           vscode.postMessage({
             command: 'saveSettings',
             values: { dialect, outputType,
-                lateBinding, namedArgs, unsafeCode, caseSensitive, initLocals, overflowEx, zeroBasedArrays, enforceSelf, allowDot, nullable, enforceVirtualOverride, allowOldStyle, modernSyntax }
-         });
+                lateBinding, namedArgs, unsafeCode, caseSensitive, initLocals, overflowEx,
+                zeroBasedArrays, enforceSelf, allowDot, nullable, enforceVirtualOverride,
+                allowOldStyle, modernSyntax }
+          });
         });
       </script>
     </body>

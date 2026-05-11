@@ -6,10 +6,16 @@ import { xsProjReader } from '../utils/xsProjReader';
 import { getConfigProjectHtml } from '../panels/configProject';
 
 import { XMLParser, XMLBuilder } from 'fast-xml-parser';
-/// Command : 
+
+function getNonce(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    return Array.from({ length: 32 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
 export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
 
     const configureProjectCommand = vscode.commands.registerCommand('xsharp.configureProject', async () => {
+        const nonce = getNonce();
         const panel = vscode.window.createWebviewPanel(
             'xsharpConfig',
             'Configure XSharp Project',
@@ -43,7 +49,7 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
             
         };
 
-        panel.webview.html = getConfigProjectHtml(initialValues);
+        panel.webview.html = getConfigProjectHtml(initialValues, nonce);
 
         panel.webview.onDidReceiveMessage(async message => {
             if (message.command === 'saveSettings') {

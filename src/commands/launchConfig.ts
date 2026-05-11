@@ -14,6 +14,9 @@ export function registerLaunchConfig(context: vscode.ExtensionContext) {
 
         const launchJson = vscode.Uri.joinPath(ws.uri, ".vscode", "launch.json");
 
+        const exists = await vscode.workspace.fs.stat(launchJson).then(() => true, () => false);
+        if (exists) return;
+
         const content = JSON.stringify({
             version: "0.2.0",
             configurations: [

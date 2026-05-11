@@ -23,9 +23,13 @@ It is good also to install the [X# Lang extension](https://marketplace.visualstu
 
 ## Extension Settings
 
-Show Errors   : If true, show errors in the Problems Panel  
-Show Warnings : If true, show warnings in the Problems panel  
-GroupByFile   : Group Errors and Warnings by File.  
+| Setting | Default | Description |
+|---|---|---|
+| `xsharp-tools.showErrors` | `true` | Show errors in the Problems panel |
+| `xsharp-tools.showWarnings` | `true` | Show warnings in the Problems panel |
+| `xsharp-tools.groupByFile` | `true` | Group errors and warnings by file |
+
+Settings can also be changed via **XSharp Tools → XSharp Tools Settings** in the context menu.
 
 ## Hidden LSP Server settings
 
@@ -63,16 +67,25 @@ Create .vsix with :
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+None at this time. Please report issues on the [GitHub repository](https://github.com/X-Sharp/VSCodeIntegration/issues).
+
+## Release Notes
+
+### 0.4.9
+- Added `.xsproj` syntax highlighting as XML
+- Moved context menu items into an **XSharp Tools** submenu
 
 ### 0.4.0
-Add LSP (Language Server Protocol) Client/Server for the X# language.
+- Added LSP (Language Server Protocol) client — connects to `XSharpLanguageServer.exe` for IntelliSense
+
 ### 0.3.0
-Add settings for the X# Project.
+- Added project configurator panel for `.xsproj` settings
+
 ### 0.2.0
-Add settings for the extension
+- Added extension settings (show errors, show warnings, group by file)
+
 ### 0.1.0
-Initial release
+- Initial release
 
 
 **Enjoy!**

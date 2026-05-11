@@ -1,34 +1,19 @@
-// src/commands/runCommand.ts
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
 
 import { parseBuildErrors } from '../utils/parseErrors';
 import { diagnosticCollection } from '../extension';
-import { findProjectFile } from '../utils/findProject';
-import * as path from 'path';
+import { prepareProjectCwd } from '../utils/findProject';
 
 export function registerBuildCommand(context: vscode.ExtensionContext) {
-  // Command : buildProject
   const buildCommand = vscode.commands.registerCommand('xsharp.buildProject', async () => {
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) {
-      vscode.window.showErrorMessage('No Folder open.');
-      return;
-    }
-    vscode.workspace.saveAll();
+    const cwd = await prepareProjectCwd();
+    if (!cwd) return;
 
-    const projectFile = await findProjectFile(); //workspaceFolders[0].uri.fsPath;
-    if (!projectFile) {
-      return;
-    }
-    const cwd = path.dirname(projectFile.fsPath);
-
-    
     vscode.window.showInformationMessage('Compiling XSharp project…');
-
     console.log('→ dotnet build started');
 
-    exec('dotnet build', { cwd }, (error, stdout, stderr) => {
+    exec('dotnet build', { cwd, timeout: 60000 }, (error, stdout) => {
       diagnosticCollection.clear();
       parseBuildErrors(stdout);
 
