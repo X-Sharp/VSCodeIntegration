@@ -15,6 +15,8 @@ The extension and its settings are available via the command palette of Visual S
 
 - Starting from Version 0.4.0, the package integrates a basic LSP Client that communicates with the [xsharp-lsp-server](https://github.com/fforay/xsharp-lsp-server). The installer (.vsix) will contain the XSharpLanguageServer.exe. The server must be **published** as a self-contained EXE and put into the **server** folder before creating the vsix file. If the EXE is missing, the extension will show a warning and continue without IntelliSense.
 
+- The extension ships a TextMate grammar (`syntaxes/xsharp.tmLanguage.json`) providing syntax highlighting for all XSharp file types. Semantic tokens emitted by the LSP server are mapped to TextMate scopes so that any VS Code theme can colour them correctly.
+
 ## Requirements
 
 You must have the latest XSharp Language version installed.  

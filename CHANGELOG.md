@@ -9,6 +9,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [0.5.0] - 2026-05-11
 
 ### Added
+- TextMate grammar with syntax highlighting for preprocessor directives and operators
+- Semantic token scope mappings for `class`, `method`, `property`, `parameter`, `namespace`, `enum`, `enumMember`, `interface`, `struct`, `typeParameter`
 - Dedicated **XSharp Build** output channel showing full `dotnet build` output
 - Keyboard shortcuts: `Ctrl+Shift+B` to build, `Ctrl+F5` to run (when an XSharp file is active)
 - Quick-pick project selector when the workspace contains multiple `.xsproj` files
@@ -23,6 +25,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Changed
 - LSP client now checks for `XSharpLanguageServer.exe` at startup and shows a clear warning if it is missing, instead of failing silently
+- `///` doc-comments now use the standard `comment.line.documentation` scope so themes apply doc-comment styling
+- Semantic token `comment` scope now covers all comment types; `string` scope covers all string variants
 - Build and Run commands now share a common helper (`prepareProjectCwd`) to eliminate duplicated logic
 - `dotnet build` invocations now have a 60-second timeout to prevent silent hangs
 - `launch.json` is no longer overwritten when it already exists
