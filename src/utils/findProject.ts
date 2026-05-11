@@ -10,7 +10,7 @@ export async function findProjectFile(): Promise<vscode.Uri | null> {
     return null;
   }
 
-  if (files.length === 1) return files[0];
+  if (files.length === 1) { return files[0]; }
 
   const items = files.map(f => ({
     label: path.basename(f.fsPath),
@@ -32,6 +32,6 @@ export async function prepareProjectCwd(): Promise<string | null> {
   }
   await vscode.workspace.saveAll();
   const projectFile = await findProjectFile();
-  if (!projectFile) return null;
+  if (!projectFile) { return null; }
   return path.dirname(projectFile.fsPath);
 }

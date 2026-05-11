@@ -6,6 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-11
+
 ### Added
 - Dedicated **XSharp Build** output channel showing full `dotnet build` output
 - Keyboard shortcuts: `Ctrl+Shift+B` to build, `Ctrl+F5` to run (when an XSharp file is active)
@@ -20,6 +22,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Build error parser only recognised `.prg` files; errors in `.xs`, `.ch`, `.prgx`, `.xsc`, `.xsprg` files are now reported
 
 ### Changed
+- LSP client now checks for `XSharpLanguageServer.exe` at startup and shows a clear warning if it is missing, instead of failing silently
 - Build and Run commands now share a common helper (`prepareProjectCwd`) to eliminate duplicated logic
 - `dotnet build` invocations now have a 60-second timeout to prevent silent hangs
 - `launch.json` is no longer overwritten when it already exists

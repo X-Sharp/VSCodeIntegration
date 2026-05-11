@@ -13,7 +13,7 @@ The extension and its settings are available via the command palette of Visual S
 - Configure project settings (dialect, output type, compiler flags) via the **Configure XSharp Project** panel.
 - **Open Folder of Active File** reveals the current file in the OS file explorer.
 
-- Starting from Version 0.4.0, the package integrates a basic LSP Client that communicates with the [xsharp-lsp-server](https://github.com/fforay/xsharp-lsp-server). The installer (.vsix) will contain the XSharpLanguageServer.exe. The server must be **published** as a self-contained EXE and put into the **server** folder before creating the vsix file.
+- Starting from Version 0.4.0, the package integrates a basic LSP Client that communicates with the [xsharp-lsp-server](https://github.com/fforay/xsharp-lsp-server). The installer (.vsix) will contain the XSharpLanguageServer.exe. The server must be **published** as a self-contained EXE and put into the **server** folder before creating the vsix file. If the EXE is missing, the extension will show a warning and continue without IntelliSense.
 
 ## Requirements
 
@@ -63,7 +63,7 @@ Compile with :
 
 Create .vsix with :  
 
-    vsce package
+    npx @vscode/vsce package
 
 
 ## Known Issues

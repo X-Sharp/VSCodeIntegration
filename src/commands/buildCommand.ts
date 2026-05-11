@@ -8,7 +8,7 @@ import { prepareProjectCwd } from '../utils/findProject';
 export function registerBuildCommand(context: vscode.ExtensionContext) {
   const buildCommand = vscode.commands.registerCommand('xsharp.buildProject', async () => {
     const cwd = await prepareProjectCwd();
-    if (!cwd) return;
+    if (!cwd) { return; }
 
     buildOutputChannel.clear();
     buildOutputChannel.show(true);

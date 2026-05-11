@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { workspace, ExtensionContext } from 'vscode';
+import * as fs from 'fs';
+import { workspace } from 'vscode';
 import {
     LanguageClient,
     LanguageClientOptions,
@@ -12,24 +13,26 @@ let client: LanguageClient;
 
 export function registerLSPClient(context: vscode.ExtensionContext) {
 
-    // LSP Server
-    // 
     const serverExe = context.asAbsolutePath(path.join('server', 'XSharpLanguageServer.exe'));
+
+    if (!fs.existsSync(serverExe)) {
+        vscode.window.showWarningMessage(
+            'XSharp Language Server not found. IntelliSense will not be available. ' +
+            `Expected: ${serverExe}`
+        );
+        return;
+    }
 
     console.log('X# LSP Server : ' + serverExe);
 
     const serverOptions: ServerOptions = {
-        run: { command: serverExe, transport: TransportKind.stdio },
+        run:   { command: serverExe, transport: TransportKind.stdio },
         debug: { command: serverExe, transport: TransportKind.stdio }
     };
 
-    // 
-    // LSP Client
-    // Filter documents for the client (only xsharp files )
-    let clientOptions: LanguageClientOptions = {
+    const clientOptions: LanguageClientOptions = {
         documentSelector: [{ scheme: 'file', language: 'xsharp' }],
         synchronize: {
-            // Notify the server about file changes to '.prg' files contained in the workspace
             fileEvents: [
                 workspace.createFileSystemWatcher('**/*.prg'),
                 workspace.createFileSystemWatcher('**/*.prgx'),
@@ -41,18 +44,14 @@ export function registerLSPClient(context: vscode.ExtensionContext) {
         }
     };
 
-    // Create and Start the Language Client
-
     client = new LanguageClient(
-        'xsharpLanguageServer', // ID interne
-        'X# Language Server',   // App Name
+        'xsharpLanguageServer',
+        'X# Language Server',
         serverOptions,
         clientOptions
     );
 
-    // Start the client. This will also launch the server
     client.start();
-
     console.log('X# Language Server Client started.');
 }
 

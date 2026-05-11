@@ -10,7 +10,7 @@ let xsharpRunTerminal: vscode.Terminal | undefined;
 export function registerRunCommand(context: vscode.ExtensionContext) {
   const runCommand = vscode.commands.registerCommand('xsharp.runProject', async () => {
     const cwd = await prepareProjectCwd();
-    if (!cwd) return;
+    if (!cwd) { return; }
 
     buildOutputChannel.clear();
     buildOutputChannel.show(true);
