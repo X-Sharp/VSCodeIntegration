@@ -19,7 +19,7 @@ export function getConfigProjectHtml(values: Record<string, string>): string {
       <hr>
       <h2>Language</h2>
       <label>
-        <input type="checkbox" id="lateBinding" ${values.latebinding === 'true' ? 'checked' : ''}>
+        <input type="checkbox" id="lateBinding" ${values.lateBinding === 'true' ? 'checked' : ''}>
         Allow Late Binding
       </label>
       <br>
@@ -113,20 +113,20 @@ export function getConfigProjectHtml(values: Record<string, string>): string {
         document.getElementById('reset').addEventListener('click', () => {
           document.getElementById('dialect').value = state.dialect;
           document.getElementById('outputType').value = state.outputType;
-          
-          document.getElementById('lateBinding').checked = false;
-          document.getElementById('namedArgs').checked = false;
-          document.getElementById('unsafeCode').checked = false;
-          document.getElementById('caseSensitive').checked = false;
-          document.getElementById('initLocals').checked = false;
-          document.getElementById('overflowEx').checked = false;
-          document.getElementById('zeroBasedArrays').checked = false;
-          document.getElementById('enforceSelf').checked = false;
-          document.getElementById('allowDot').checked = false;
+
+          document.getElementById('lateBinding').checked = state.lateBinding === 'true';
+          document.getElementById('namedArgs').checked = state.namedArgs === 'true';
+          document.getElementById('unsafeCode').checked = state.unsafeCode === 'true';
+          document.getElementById('caseSensitive').checked = state.caseSensitive === 'true';
+          document.getElementById('initLocals').checked = state.initLocals === 'true';
+          document.getElementById('overflowEx').checked = state.overflowEx === 'true';
+          document.getElementById('zeroBasedArrays').checked = state.zeroBasedArrays === 'true';
+          document.getElementById('enforceSelf').checked = state.enforceSelf === 'true';
+          document.getElementById('allowDot').checked = state.allowDot === 'true';
           document.getElementById('nullable').checked = state.nullable === 'enable';
-          document.getElementById('enforceVirtualOverride').checked = false;
-          document.getElementById('allowOldStyle').checked = false;
-          document.getElementById('modernSyntax').checked = false;
+          document.getElementById('enforceVirtualOverride').checked = state.enforceVirtualOverride === 'true';
+          document.getElementById('allowOldStyle').checked = state.allowOldStyle === 'true';
+          document.getElementById('modernSyntax').checked = state.modernSyntax === 'true';
         });
 
         document.getElementById('save').addEventListener('click', () => {
@@ -145,11 +145,12 @@ export function getConfigProjectHtml(values: Record<string, string>): string {
           const nullable = document.getElementById('nullable').checked ? 'enable' : 'disable';
           const enforceVirtualOverride = document.getElementById('enforceVirtualOverride').checked ? 'true' : 'false';
           const allowOldStyle = document.getElementById('allowOldStyle').checked ? 'true' : 'false';
+          const modernSyntax = document.getElementById('modernSyntax').checked ? 'true' : 'false';
 
           vscode.postMessage({
             command: 'saveSettings',
-            values: { dialect, outputType, 
-                lateBinding, namedArgs, unsafeCode, caseSensitive, initLocals, overflowEx, zeroBasedArrays, enforceSelf, allowDot, nullable, enforceVirtualOverride, allowOldStyle }
+            values: { dialect, outputType,
+                lateBinding, namedArgs, unsafeCode, caseSensitive, initLocals, overflowEx, zeroBasedArrays, enforceSelf, allowDot, nullable, enforceVirtualOverride, allowOldStyle, modernSyntax }
          });
         });
       </script>

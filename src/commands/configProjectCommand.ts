@@ -73,7 +73,7 @@ function updateProjectXml(xmlText: string, values: Record<string, string>): stri
     group.namedargs = values.namedArgs;
     group.unsafe = values.unsafeCode;
     group.CS = values.caseSensitive;
-    group.initLocals = values.initlocals;
+    group.initLocals = values.initLocals;
     group.ovf = values.overflowEx;
     group.AZ = values.zeroBasedArrays;
     group.EnforceSelf = values.enforceSelf;

@@ -14,7 +14,7 @@ export function parseBuildErrors(output: string) {
   const showWarnings = config.get<boolean>('showWarnings', true);
   const groupByFile = config.get<boolean>('groupByFile', true);
 
-  const regex = /(.*\.prg)\((\d+),(\d+)\):\s*(error|warning)\s*(\w+):\s*(.*)/g;
+  const regex = /(.*\.(?:prg|prgx|xs|xsc|xsprg|ch))\((\d+),(\d+)\):\s*(error|warning)\s*(\w+):\s*(.*)/gi;
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(output)) !== null) {

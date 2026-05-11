@@ -1,8 +1,4 @@
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
-import * as path from 'path';
-import * as fs from 'fs';
-import { Console } from 'console';
 
 
 import { parseBuildErrors } from './utils/parseErrors';
@@ -15,7 +11,6 @@ import { registerConfigProjectCommand } from './commands/configProjectCommand';
 import { registerOpenFolderCommand } from './commands/openFolderCommand';
 import { registerLSPClient } from './lsp/lspClient';
 import { deactivateLSPClient } from './lsp/lspClient';
-import { register } from 'module';
 import { registerLaunchConfig } from './commands/launchConfig';
 import { registerDebugAdapter } from './commands/debugAdapter';
 
