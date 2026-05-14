@@ -1,5 +1,5 @@
 
-export function getConfigProjectHtml(values: Record<string, string>, nonce: string): string {
+export function getConfigProjectHtml(values: Record<string, string>, nonce: string, isSdkStyle: boolean): string {
   const s = {
     // General
     assemblyName:                 values.assemblyName ?? '',
@@ -125,7 +125,7 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
     <div class="tab active" data-tab="general">General</div>
     <div class="tab" data-tab="language">Language</div>
     <div class="tab" data-tab="dialect">Dialect</div>
-    <div class="tab" data-tab="package">Package</div>
+    ${isSdkStyle ? '<div class="tab" data-tab="package">Package</div>' : ''}
   </div>
 
   <!-- ===================== GENERAL ===================== -->
@@ -236,7 +236,8 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
     ${cb('xpp1', s.xpp1, 'Xpp1 - Xbase++ compatibility (XPP dialect only)')}
   </div>
 
-  <!-- ===================== PACKAGE ===================== -->
+  <!-- ===================== PACKAGE (SDK-style only) ===================== -->
+  ${isSdkStyle ? '' : '<!--'}
   <div id="tab-package" class="tab-panel">
     <div class="section-title" style="margin-top:0">Assembly Information</div>
     ${tf('assemblyTitle',    s.assemblyTitle,    'Title:')}
@@ -259,6 +260,7 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
     ${cb('generatePackageOnBuild', s.generatePackageOnBuild, 'Generate NuGet package on build')}
     ${cb('isPackable',             s.isPackable,             'Package this project')}
   </div>
+  ${isSdkStyle ? '' : '-->'}
 
   <div class="actions">
     <button id="reset">Reset</button>

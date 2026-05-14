@@ -30,6 +30,9 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
         const xmlText = Buffer.from(content).toString('utf8');
         const props = new xsProjReader(xmlText);
 
+        const parsedForSdk = new XMLParser({ ignoreAttributes: false }).parse(xmlText);
+        const isSdkStyle = !!parsedForSdk?.Project?.['@_Sdk'];
+
         const initialValues = {
             // General
             assemblyName:                 props.get('AssemblyName') ?? '',
@@ -105,11 +108,11 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
             isPackable:                props.get('IsPackable') ?? 'false',
         };
 
-        panel.webview.html = getConfigProjectHtml(initialValues, nonce);
+        panel.webview.html = getConfigProjectHtml(initialValues, nonce, isSdkStyle);
 
         panel.webview.onDidReceiveMessage(async message => {
             if (message.command === 'saveSettings') {
-                const updatedXml = updateProjectXml(xmlText, message.values);
+                const updatedXml = updateProjectXml(xmlText, message.values, isSdkStyle);
                 await vscode.workspace.fs.writeFile(projectFile, Buffer.from(updatedXml, 'utf8'));
                 vscode.window.showInformationMessage('Project settings saved.');
             }
@@ -121,7 +124,7 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
 
 }
 
-function updateProjectXml(xmlText: string, values: Record<string, string>): string {
+function updateProjectXml(xmlText: string, values: Record<string, string>, isSdkStyle: boolean): string {
     const parser = new XMLParser({ ignoreAttributes: false });
     const parsed = parser.parse(xmlText);
     const rawGroup = parsed?.Project?.PropertyGroup;
@@ -172,22 +175,24 @@ function updateProjectXml(xmlText: string, values: Record<string, string>): stri
     group.Vo16 = values.vo16; group.Vo17 = values.vo17;
     group.Fox2 = values.fox2;
     group.Xpp1 = values.xpp1;
-    // Package
-    group.AssemblyTitle            = values.assemblyTitle;
-    group.Description              = values.description;
-    group.Company                  = values.company;
-    group.Copyright                = values.copyright;
-    group.NeutralLanguage          = values.neutralLanguage;
-    group.PackageId                = values.packageId;
-    group.PackageVersion           = values.packageVersion;
-    group.Authors                  = values.authors;
-    group.PackageTags              = values.packageTags;
-    group.PackageLicenseExpression = values.packageLicenseExpression;
-    group.PackageProjectUrl        = values.packageProjectUrl;
-    group.RepositoryUrl            = values.repositoryUrl;
-    group.RepositoryType           = values.repositoryType;
-    group.GeneratePackageOnBuild   = values.generatePackageOnBuild;
-    group.IsPackable               = values.isPackable;
+    // Package (SDK-style only)
+    if (isSdkStyle) {
+        group.AssemblyTitle            = values.assemblyTitle;
+        group.Description              = values.description;
+        group.Company                  = values.company;
+        group.Copyright                = values.copyright;
+        group.NeutralLanguage          = values.neutralLanguage;
+        group.PackageId                = values.packageId;
+        group.PackageVersion           = values.packageVersion;
+        group.Authors                  = values.authors;
+        group.PackageTags              = values.packageTags;
+        group.PackageLicenseExpression = values.packageLicenseExpression;
+        group.PackageProjectUrl        = values.packageProjectUrl;
+        group.RepositoryUrl            = values.repositoryUrl;
+        group.RepositoryType           = values.repositoryType;
+        group.GeneratePackageOnBuild   = values.generatePackageOnBuild;
+        group.IsPackable               = values.isPackable;
+    }
 
     const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
     return builder.build(parsed);
