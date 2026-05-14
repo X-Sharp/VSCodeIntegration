@@ -9,13 +9,13 @@ export class xsProjReader {
     const parser = new XMLParser({ ignoreAttributes: false });
     const parsed = parser.parse(xmlContent);
 
-    // Get the first PropertyGroup
-    const propertyGroup = parsed?.Project?.PropertyGroup;
+    // Get the first PropertyGroup (multiple groups become an array in fast-xml-parser)
+    const rawGroup = parsed?.Project?.PropertyGroup;
+    const propertyGroup = Array.isArray(rawGroup) ? rawGroup[0] : rawGroup;
 
     if (!propertyGroup || typeof propertyGroup !== 'object') {
       this.values = {};
     } else {
-
       this.values = this.normalizePropertyGroup(propertyGroup);
     }
 
