@@ -1,5 +1,11 @@
 
-export function getConfigProjectHtml(values: Record<string, string>, nonce: string, isSdkStyle: boolean): string {
+export function getConfigProjectHtml(
+  values: Record<string, string>,
+  nonce: string,
+  isSdkStyle: boolean,
+  configs: string[],
+  buildByConfig: Record<string, Record<string, string>>
+): string {
   const s = {
     // General
     assemblyName:                 values.assemblyName ?? '',
@@ -75,6 +81,9 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
     repositoryType:            values.repositoryType ?? '',
     generatePackageOnBuild:    values.generatePackageOnBuild ?? 'false',
     isPackable:                values.isPackable ?? 'false',
+    // Build — config names + per-config values (JS drives the fields)
+    configs,
+    buildByConfig,
   };
 
   const stateJson = JSON.stringify(s);
@@ -109,6 +118,9 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
     .cb input { cursor: pointer; flex-shrink: 0; }
     .cb.off { opacity: 0.45; cursor: not-allowed; }
     .cb.off input { pointer-events: none; }
+    .cfg-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .cfg-row strong { white-space: nowrap; }
+    .cfg-row select { width: auto; min-width: 130px; }
     .actions { margin-top: 16px; display: flex; gap: 8px; }
     button { padding: 5px 16px; cursor: pointer; border: none;
       background: var(--vscode-button-background, #0e639c);
@@ -124,6 +136,7 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
   <div class="tabs">
     <div class="tab active" data-tab="general">General</div>
     <div class="tab" data-tab="language">Language</div>
+    <div class="tab" data-tab="build">Build</div>
     <div class="tab" data-tab="dialect">Dialect</div>
     ${isSdkStyle ? '<div class="tab" data-tab="package">Package</div>' : ''}
   </div>
@@ -203,6 +216,97 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
     </div>
   </div>
 
+  <!-- ===================== BUILD ===================== -->
+  <div id="tab-build" class="tab-panel">
+    <div class="cfg-row">
+      <strong>Configuration:</strong>
+      <select id="buildConfig">
+        ${configs.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="section-title">Output</div>
+        <div class="field">
+          <div class="field-label">Output Path:</div>
+          <input type="text" id="outputPath" placeholder="e.g. bin\\Debug\\">
+        </div>
+        <div class="field">
+          <div class="field-label">Intermediate Path:</div>
+          <input type="text" id="intermediateOutputPath" placeholder="e.g. obj\\Debug\\">
+        </div>
+        <div class="field">
+          <div class="field-label">Platform Target:</div>
+          <select id="platformTarget">
+            <option value="AnyCPU">AnyCPU</option>
+            <option value="x86">x86</option>
+            <option value="x64">x64</option>
+            <option value="arm">arm</option>
+            <option value="arm64">arm64</option>
+          </select>
+        </div>
+        <div class="section-title">Code Generation</div>
+        <label class="cb"><input type="checkbox" id="optimize">Optimize code</label>
+        <label class="cb"><input type="checkbox" id="prefer32Bit">Prefer 32-bit</label>
+        <label class="cb"><input type="checkbox" id="registerForComInterop">Register for COM Interop</label>
+        <div class="section-title">Preprocessor</div>
+        <label class="cb"><input type="checkbox" id="ppo">Generate PPO files</label>
+        <div class="field">
+          <div class="field-label">Define Constants:</div>
+          <input type="text" id="defineConstants" placeholder="e.g. DEBUG;TRACE">
+        </div>
+        <div class="section-title">Signing</div>
+        <label class="cb"><input type="checkbox" id="signAssembly">Sign the assembly</label>
+        <label class="cb"><input type="checkbox" id="delaySign">Delay sign only</label>
+        <div class="field">
+          <div class="field-label">Key File:</div>
+          <input type="text" id="assemblyOriginatorKeyFile">
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Warnings</div>
+        <div class="field">
+          <div class="field-label">Warning Level:</div>
+          <select id="warningLevel">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">Treat warnings as errors:</div>
+          <select id="warningsTreatment">
+            <option value="none">None</option>
+            <option value="all">All</option>
+            <option value="specific">Specific warnings</option>
+          </select>
+        </div>
+        <div class="field" id="warningsAsErrorsField" style="display:none">
+          <div class="field-label">Warning codes (semicolon-separated):</div>
+          <input type="text" id="warningsAsErrors" placeholder="e.g. CS0168;CS0219">
+        </div>
+        <div class="field">
+          <div class="field-label">Suppress Warnings (NoWarn):</div>
+          <input type="text" id="noWarn" placeholder="e.g. CS0168;CS0219">
+        </div>
+        <div class="section-title">XML Documentation</div>
+        <label class="cb"><input type="checkbox" id="xmlDocEnabled">Generate XML documentation file</label>
+        <div class="field" id="documentationFileField" style="display:none">
+          <input type="text" id="documentationFile" placeholder="e.g. bin\\Debug\\MyProject.xml">
+        </div>
+        <div class="section-title">Miscellaneous</div>
+        <label class="cb"><input type="checkbox" id="useSharedCompilation">Use shared compilation</label>
+        <label class="cb"><input type="checkbox" id="suppressRcWarnings">Suppress RC warnings</label>
+        <div class="field">
+          <div class="field-label">Additional compiler options:</div>
+          <input type="text" id="commandLineOption">
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== DIALECT ===================== -->
   <div id="tab-dialect" class="tab-panel">
     <div class="two-col">
@@ -272,7 +376,7 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
     const state = ${stateJson};
     vscode.setState(state);
 
-    // Tab switching
+    // ---- Tab switching ----
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
         const name = tab.dataset.tab;
@@ -283,7 +387,7 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
       });
     });
 
-    // Enable/disable options based on dialect selection
+    // ---- General / Dialect: enable/disable options based on dialect ----
     const NOT_IN_CORE = ['vo5','vo6','vo7','vo11','vo12','vo13','vo14','vo15','vo16','vo17'];
     function updateDialectDeps(dialect) {
       const isCore   = dialect === 'Core';
@@ -302,10 +406,121 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
     document.getElementById('dialect').addEventListener('change', e => updateDialectDeps(e.target.value));
     updateDialectDeps(state.dialect);
 
-    // Reset
+    // ---- Build tab ----
+    let buildValues = JSON.parse(JSON.stringify(state.buildByConfig));
+    let currentBuildConfig = state.configs[0] || 'Debug';
+
+    function loadBuildConfig(config) {
+      const v = buildValues[config] || {};
+      const t = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+      const b = (id, val) => { const el = document.getElementById(id); if (el) el.checked = (val || '').toLowerCase() === 'true'; };
+
+      t('outputPath',               v.outputPath);
+      t('intermediateOutputPath',   v.intermediateOutputPath);
+      const pt = document.getElementById('platformTarget');
+      if (pt) pt.value = v.platformTarget || 'AnyCPU';
+
+      b('optimize',              v.optimize);
+      b('prefer32Bit',           v.prefer32Bit);
+      b('registerForComInterop', v.registerForComInterop);
+      b('ppo',                   v.ppo);
+      t('defineConstants',       v.defineConstants);
+      b('signAssembly',          v.signAssembly);
+      b('delaySign',             v.delaySign);
+      t('assemblyOriginatorKeyFile', v.assemblyOriginatorKeyFile);
+
+      const wl = document.getElementById('warningLevel');
+      if (wl) wl.value = v.warningLevel || '4';
+
+      // Treat warnings as errors: derive treatment from raw WarningsAsErrors value
+      const wae = v.warningsAsErrors || '';
+      const wt  = document.getElementById('warningsTreatment');
+      const waef = document.getElementById('warningsAsErrorsField');
+      const waei = document.getElementById('warningsAsErrors');
+      if (wae === '*') {
+        if (wt) wt.value = 'all';
+      } else if (wae !== '') {
+        if (wt) wt.value = 'specific';
+        if (waei) waei.value = wae;
+      } else {
+        if (wt) wt.value = 'none';
+        if (waei) waei.value = '';
+      }
+      if (waef) waef.style.display = (wt && wt.value === 'specific') ? 'block' : 'none';
+
+      t('noWarn', v.noWarn);
+
+      // XML documentation
+      const xmlEnabled = !!(v.documentationFile && v.documentationFile !== '');
+      const xmlCb  = document.getElementById('xmlDocEnabled');
+      const docFld = document.getElementById('documentationFileField');
+      if (xmlCb)  xmlCb.checked = xmlEnabled;
+      if (docFld) docFld.style.display = xmlEnabled ? 'block' : 'none';
+      t('documentationFile', v.documentationFile);
+
+      b('useSharedCompilation', v.useSharedCompilation);
+      b('suppressRcWarnings',   v.suppressRcWarnings);
+      t('commandLineOption',    v.commandLineOption);
+    }
+
+    function captureBuildConfig(config) {
+      if (!buildValues[config]) buildValues[config] = {};
+      const v = buildValues[config];
+      const t = id => (document.getElementById(id) || {}).value || '';
+      const b = id => { const el = document.getElementById(id); return el && el.checked ? 'true' : 'false'; };
+
+      v.outputPath               = t('outputPath');
+      v.intermediateOutputPath   = t('intermediateOutputPath');
+      v.platformTarget           = t('platformTarget');
+      v.optimize                 = b('optimize');
+      v.prefer32Bit              = b('prefer32Bit');
+      v.registerForComInterop    = b('registerForComInterop');
+      v.ppo                      = b('ppo');
+      v.defineConstants          = t('defineConstants');
+      v.signAssembly             = b('signAssembly');
+      v.delaySign                = b('delaySign');
+      v.assemblyOriginatorKeyFile= t('assemblyOriginatorKeyFile');
+      v.warningLevel             = t('warningLevel');
+
+      const treatment = t('warningsTreatment');
+      v.warningsAsErrors = treatment === 'all' ? '*'
+                         : treatment === 'specific' ? t('warningsAsErrors')
+                         : '';
+
+      v.noWarn             = t('noWarn');
+      const xmlCb          = document.getElementById('xmlDocEnabled');
+      v.documentationFile  = xmlCb && xmlCb.checked ? t('documentationFile') : '';
+      v.useSharedCompilation = b('useSharedCompilation');
+      v.suppressRcWarnings   = b('suppressRcWarnings');
+      v.commandLineOption    = t('commandLineOption');
+    }
+
+    // Config selector switches displayed fields
+    document.getElementById('buildConfig').addEventListener('change', e => {
+      captureBuildConfig(currentBuildConfig);
+      currentBuildConfig = e.target.value;
+      loadBuildConfig(currentBuildConfig);
+    });
+
+    // Show/hide specific-warnings text box
+    document.getElementById('warningsTreatment').addEventListener('change', e => {
+      document.getElementById('warningsAsErrorsField').style.display =
+        e.target.value === 'specific' ? 'block' : 'none';
+    });
+
+    // Show/hide documentation file path
+    document.getElementById('xmlDocEnabled').addEventListener('change', e => {
+      document.getElementById('documentationFileField').style.display =
+        e.target.checked ? 'block' : 'none';
+    });
+
+    // Populate Build tab on load
+    loadBuildConfig(currentBuildConfig);
+
+    // ---- Reset ----
     document.getElementById('reset').addEventListener('click', () => {
-      const t = (id, v) => { document.getElementById(id).value = v; };
-      const b = (id, v) => { document.getElementById(id).checked = v === 'true'; };
+      const t = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+      const b = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v === 'true'; };
       // General
       t('assemblyName', state.assemblyName);
       t('rootNamespace', state.rootNamespace);
@@ -333,6 +548,9 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
       ['vo1','vo2','vo3','vo4','vo5','vo6','vo7','vo8','vo9','vo10',
        'vo11','vo12','vo13','vo14','vo15','vo16','vo17','fox2','xpp1']
         .forEach(id => b(id, state[id]));
+      // Build
+      buildValues = JSON.parse(JSON.stringify(state.buildByConfig));
+      loadBuildConfig(currentBuildConfig);
       // Package
       t('assemblyTitle', state.assemblyTitle); t('description', state.description);
       t('company', state.company); t('copyright', state.copyright);
@@ -347,49 +565,55 @@ export function getConfigProjectHtml(values: Record<string, string>, nonce: stri
       updateDialectDeps(state.dialect);
     });
 
-    // Save
+    // ---- Save ----
     document.getElementById('save').addEventListener('click', () => {
+      // Flush the currently visible build config before collecting everything.
+      captureBuildConfig(currentBuildConfig);
+
       const g = id => document.getElementById(id);
-      const bool = id => g(id).checked ? 'true' : 'false';
-      const text = id => g(id).value;
-      vscode.postMessage({ command: 'saveSettings', values: {
-        // General
-        assemblyName: text('assemblyName'), rootNamespace: text('rootNamespace'),
-        outputType: text('outputType'), targetFramework: text('targetFramework'),
-        dialect: text('dialect'), startupObject: text('startupObject'),
-        autoGenerateBindingRedirects: bool('autoGenerateBindingRedirects'),
-        noWin32Manifest: bool('noWin32Manifest'), useNativeVersion: bool('useNativeVersion'),
-        vulcanCompatibleResources: bool('vulcanCompatibleResources'),
-        // Language
-        lateBinding: bool('lateBinding'), namedArgs: bool('namedArgs'),
-        unsafeCode: bool('unsafeCode'), caseSensitive: bool('caseSensitive'),
-        initLocals: bool('initLocals'), overflowEx: bool('overflowEx'),
-        zeroBasedArrays: bool('zeroBasedArrays'), enforceSelf: bool('enforceSelf'),
-        allowDot: bool('allowDot'),
-        nullable: g('nullable').checked ? 'enable' : 'disable',
-        enforceVirtualOverride: bool('enforceVirtualOverride'),
-        allowOldStyle: bool('allowOldStyle'), modernSyntax: bool('modernSyntax'),
-        memVar: bool('memVar'), undeclared: bool('undeclared'),
-        ins: bool('ins'), ns: bool('ns'), noStandardDefs: bool('noStandardDefs'),
-        includePaths: text('includePaths'), standardDefs: text('standardDefs'),
-        // Dialect
-        vo1: bool('vo1'), vo2: bool('vo2'), vo3: bool('vo3'), vo4: bool('vo4'),
-        vo5: bool('vo5'), vo6: bool('vo6'), vo7: bool('vo7'), vo8: bool('vo8'),
-        vo9: bool('vo9'), vo10: bool('vo10'), vo11: bool('vo11'), vo12: bool('vo12'),
-        vo13: bool('vo13'), vo14: bool('vo14'), vo15: bool('vo15'), vo16: bool('vo16'),
-        vo17: bool('vo17'), fox2: bool('fox2'), xpp1: bool('xpp1'),
-        // Package
-        assemblyTitle: text('assemblyTitle'), description: text('description'),
-        company: text('company'), copyright: text('copyright'),
-        neutralLanguage: text('neutralLanguage'),
-        packageId: text('packageId'), packageVersion: text('packageVersion'),
-        authors: text('authors'), packageTags: text('packageTags'),
-        packageLicenseExpression: text('packageLicenseExpression'),
-        packageProjectUrl: text('packageProjectUrl'),
-        repositoryUrl: text('repositoryUrl'), repositoryType: text('repositoryType'),
-        generatePackageOnBuild: bool('generatePackageOnBuild'),
-        isPackable: bool('isPackable'),
-      }});
+      const bool = id => g(id) && g(id).checked ? 'true' : 'false';
+      const text = id => g(id) ? g(id).value : '';
+      vscode.postMessage({ command: 'saveSettings',
+        buildByConfig: buildValues,
+        values: {
+          // General
+          assemblyName: text('assemblyName'), rootNamespace: text('rootNamespace'),
+          outputType: text('outputType'), targetFramework: text('targetFramework'),
+          dialect: text('dialect'), startupObject: text('startupObject'),
+          autoGenerateBindingRedirects: bool('autoGenerateBindingRedirects'),
+          noWin32Manifest: bool('noWin32Manifest'), useNativeVersion: bool('useNativeVersion'),
+          vulcanCompatibleResources: bool('vulcanCompatibleResources'),
+          // Language
+          lateBinding: bool('lateBinding'), namedArgs: bool('namedArgs'),
+          unsafeCode: bool('unsafeCode'), caseSensitive: bool('caseSensitive'),
+          initLocals: bool('initLocals'), overflowEx: bool('overflowEx'),
+          zeroBasedArrays: bool('zeroBasedArrays'), enforceSelf: bool('enforceSelf'),
+          allowDot: bool('allowDot'),
+          nullable: g('nullable') && g('nullable').checked ? 'enable' : 'disable',
+          enforceVirtualOverride: bool('enforceVirtualOverride'),
+          allowOldStyle: bool('allowOldStyle'), modernSyntax: bool('modernSyntax'),
+          memVar: bool('memVar'), undeclared: bool('undeclared'),
+          ins: bool('ins'), ns: bool('ns'), noStandardDefs: bool('noStandardDefs'),
+          includePaths: text('includePaths'), standardDefs: text('standardDefs'),
+          // Dialect
+          vo1: bool('vo1'), vo2: bool('vo2'), vo3: bool('vo3'), vo4: bool('vo4'),
+          vo5: bool('vo5'), vo6: bool('vo6'), vo7: bool('vo7'), vo8: bool('vo8'),
+          vo9: bool('vo9'), vo10: bool('vo10'), vo11: bool('vo11'), vo12: bool('vo12'),
+          vo13: bool('vo13'), vo14: bool('vo14'), vo15: bool('vo15'), vo16: bool('vo16'),
+          vo17: bool('vo17'), fox2: bool('fox2'), xpp1: bool('xpp1'),
+          // Package
+          assemblyTitle: text('assemblyTitle'), description: text('description'),
+          company: text('company'), copyright: text('copyright'),
+          neutralLanguage: text('neutralLanguage'),
+          packageId: text('packageId'), packageVersion: text('packageVersion'),
+          authors: text('authors'), packageTags: text('packageTags'),
+          packageLicenseExpression: text('packageLicenseExpression'),
+          packageProjectUrl: text('packageProjectUrl'),
+          repositoryUrl: text('repositoryUrl'), repositoryType: text('repositoryType'),
+          generatePackageOnBuild: bool('generatePackageOnBuild'),
+          isPackable: bool('isPackable'),
+        }
+      });
     });
   </script>
 </body>

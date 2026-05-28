@@ -24,6 +24,7 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
         );
         const projectFile = await findProjectFile();
         if (!projectFile) {
+            panel.dispose();
             return;
         }
         const content = await vscode.workspace.fs.readFile(projectFile);
@@ -32,6 +33,44 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
 
         const parsedForSdk = new XMLParser({ ignoreAttributes: false }).parse(xmlText);
         const isSdkStyle = !!parsedForSdk?.Project?.['@_Sdk'];
+
+        if (!isSdkStyle) {
+            vscode.window.showWarningMessage(
+                'Configure XSharp Project is only supported for .NET SDK-style projects. ' +
+                'Legacy (.xsproj without Sdk attribute) projects must be configured manually.'
+            );
+            panel.dispose();
+            return;
+        }
+
+        // ---- Per-configuration build values ----
+        const configs = props.getConfigs();
+        const effectiveConfigs = configs.length > 0 ? configs : ['Debug', 'Release'];
+
+        const buildByConfig: Record<string, Record<string, string>> = {};
+        for (const cfg of effectiveConfigs) {
+            const r = (key: string) => props.resolveForConfig(cfg, key) ?? '';
+            buildByConfig[cfg] = {
+                outputPath:                r('OutputPath'),
+                intermediateOutputPath:    r('IntermediateOutputPath'),
+                platformTarget:            r('PlatformTarget'),
+                optimize:                  r('Optimize'),
+                prefer32Bit:               r('Prefer32Bit'),
+                registerForComInterop:     r('RegisterForComInterop'),
+                ppo:                       r('PPO'),
+                defineConstants:           r('DefineConstants'),
+                signAssembly:              r('SignAssembly'),
+                delaySign:                 r('DelaySign'),
+                assemblyOriginatorKeyFile: r('AssemblyOriginatorKeyFile'),
+                warningLevel:              r('WarningLevel'),
+                warningsAsErrors:          r('WarningsAsErrors'),
+                documentationFile:         r('DocumentationFile'),
+                useSharedCompilation:      r('UseSharedCompilation'),
+                suppressRcWarnings:        r('SuppressRCWarnings'),
+                commandLineOption:         r('CommandLineOption'),
+                noWarn:                    r('NoWarn'),
+            };
+        }
 
         const initialValues = {
             // General
@@ -108,11 +147,16 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
             isPackable:                props.get('IsPackable') ?? 'false',
         };
 
-        panel.webview.html = getConfigProjectHtml(initialValues, nonce, isSdkStyle);
+        panel.webview.html = getConfigProjectHtml(initialValues, nonce, isSdkStyle, effectiveConfigs, buildByConfig);
 
         panel.webview.onDidReceiveMessage(async message => {
             if (message.command === 'saveSettings') {
-                const updatedXml = updateProjectXml(xmlText, message.values, isSdkStyle);
+                const updatedXml = updateProjectXml(
+                    xmlText,
+                    message.values,
+                    isSdkStyle,
+                    message.buildByConfig ?? {}
+                );
                 await vscode.workspace.fs.writeFile(projectFile, Buffer.from(updatedXml, 'utf8'));
                 vscode.window.showInformationMessage('Project settings saved.');
             }
@@ -124,15 +168,27 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
 
 }
 
-function updateProjectXml(xmlText: string, values: Record<string, string>, isSdkStyle: boolean): string {
+function updateProjectXml(
+    xmlText: string,
+    values: Record<string, string>,
+    isSdkStyle: boolean,
+    buildByConfig: Record<string, Record<string, string>>
+): string {
     const parser = new XMLParser({ ignoreAttributes: false });
     const parsed = parser.parse(xmlText);
     const rawGroup = parsed?.Project?.PropertyGroup;
     if (!rawGroup) {
         return xmlText;
     }
-    // Handle both a single PropertyGroup object and an array of groups
-    const group = Array.isArray(rawGroup) ? rawGroup[0] : rawGroup;
+
+    // Normalise to array so we can find/append groups uniformly.
+    const allGroups: any[] = Array.isArray(rawGroup) ? rawGroup : [rawGroup];
+    if (!Array.isArray(parsed.Project.PropertyGroup)) {
+        parsed.Project.PropertyGroup = allGroups;
+    }
+
+    // ---- Global group (first unconditioned PropertyGroup) ----
+    const group = allGroups.find((g: any) => !g['@_Condition']) ?? allGroups[0];
 
     // General
     group.AssemblyName                 = values.assemblyName;
@@ -192,6 +248,51 @@ function updateProjectXml(xmlText: string, values: Record<string, string>, isSdk
         group.RepositoryType           = values.repositoryType;
         group.GeneratePackageOnBuild   = values.generatePackageOnBuild;
         group.IsPackable               = values.isPackable;
+    }
+
+    // ---- Per-configuration groups (Build tab) ----
+    for (const [config, buildVals] of Object.entries(buildByConfig)) {
+        // Find the first PropertyGroup whose Condition references this config name.
+        let configGroup = allGroups.find((g: any) => {
+            const cond: string = g['@_Condition'] ?? '';
+            return cond.includes(`'${config}|`) || cond.includes(`"${config}|`);
+        });
+
+        if (!configGroup) {
+            configGroup = {
+                '@_Condition': `'$(Configuration)|$(Platform)' == '${config}|AnyCPU'`
+            };
+            allGroups.push(configGroup);
+        }
+
+        // Write a property only when the value is non-empty; delete it otherwise
+        // so that MSBuild defaults take effect (avoids littering the file).
+        const set = (name: string, value: string) => {
+            if (value !== undefined && value !== '') {
+                configGroup[name] = value;
+            } else {
+                delete configGroup[name];
+            }
+        };
+
+        set('OutputPath',                buildVals.outputPath);
+        set('IntermediateOutputPath',    buildVals.intermediateOutputPath);
+        set('PlatformTarget',            buildVals.platformTarget);
+        set('Optimize',                  buildVals.optimize);
+        set('Prefer32Bit',               buildVals.prefer32Bit);
+        set('RegisterForComInterop',     buildVals.registerForComInterop);
+        set('PPO',                       buildVals.ppo);
+        set('DefineConstants',           buildVals.defineConstants);
+        set('SignAssembly',              buildVals.signAssembly);
+        set('DelaySign',                 buildVals.delaySign);
+        set('AssemblyOriginatorKeyFile', buildVals.assemblyOriginatorKeyFile);
+        set('WarningLevel',              buildVals.warningLevel);
+        set('WarningsAsErrors',          buildVals.warningsAsErrors);
+        set('DocumentationFile',         buildVals.documentationFile);
+        set('UseSharedCompilation',      buildVals.useSharedCompilation);
+        set('SuppressRCWarnings',        buildVals.suppressRcWarnings);
+        set('CommandLineOption',         buildVals.commandLineOption);
+        set('NoWarn',                    buildVals.noWarn);
     }
 
     const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
