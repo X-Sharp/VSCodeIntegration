@@ -40,6 +40,7 @@ export function registerLSPClient(context: vscode.ExtensionContext) {
                 workspace.createFileSystemWatcher('**/*.xsc'),
                 workspace.createFileSystemWatcher('**/*.xsprg'),
                 workspace.createFileSystemWatcher('**/*.ch'),
+                workspace.createFileSystemWatcher('**/*.xh'),
             ]
         }
     };
