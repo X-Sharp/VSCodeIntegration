@@ -33,6 +33,8 @@ export function registerLSPClient(context: vscode.ExtensionContext) {
     const clientOptions: LanguageClientOptions = {
         documentSelector: [{ scheme: 'file', language: 'xsharp' }],
         synchronize: {
+            // Forward all xsharp.* settings to the server via workspace/didChangeConfiguration.
+            configurationSection: 'xsharp',
             fileEvents: [
                 workspace.createFileSystemWatcher('**/*.prg'),
                 workspace.createFileSystemWatcher('**/*.prgx'),

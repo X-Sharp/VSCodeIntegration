@@ -1,6 +1,4 @@
-
 import * as vscode from 'vscode';
-
 import { getSettingsPanelHtml } from '../panels/settingsPanel';
 
 function getNonce(): string {
@@ -10,33 +8,39 @@ function getNonce(): string {
 
 export function registerSettingsPanelCommand(context: vscode.ExtensionContext) {
 
-    const settingsPanelCommand = vscode.commands.registerCommand('xsharp.settingsPanel', () => {
+    const cmd = vscode.commands.registerCommand('xsharp.settingsPanel', () => {
         const nonce = getNonce();
         const panel = vscode.window.createWebviewPanel(
             'xsharpSettings',
-            'XSharp Tools Settings',
+            'XSharp Settings',
             vscode.ViewColumn.One,
             { enableScripts: true }
         );
 
-        const config = vscode.workspace.getConfiguration('xsharp-tools');
+        const tools = vscode.workspace.getConfiguration('xsharp-tools');
+        const lsp   = vscode.workspace.getConfiguration('xsharp');
 
-        panel.webview.html = getSettingsPanelHtml(config, nonce);
+        panel.webview.html = getSettingsPanelHtml({ tools, lsp }, nonce);
 
         panel.webview.onDidReceiveMessage(
-            async message => {
-                await config.update(message.setting, message.value, vscode.ConfigurationTarget.Workspace);
-                vscode.window.showInformationMessage(`Setting "${message.setting}" updated : ${message.value ? 'ON' : 'OFF'}`);
+            async (message: { ns: string; setting: string; type: string; value: unknown }) => {
+                const cfg    = message.ns === 'tools'
+                    ? vscode.workspace.getConfiguration('xsharp-tools')
+                    : vscode.workspace.getConfiguration('xsharp');
+                const target = vscode.ConfigurationTarget.Workspace;
+
+                await cfg.update(message.setting, message.value, target);
+
+                const display = message.type === 'boolean'
+                    ? (message.value ? 'ON' : 'OFF')
+                    : String(message.value);
+                vscode.window.showInformationMessage(
+                    `XSharp: "${message.setting}" → ${display}`);
             },
             undefined,
             context.subscriptions
         );
     });
 
-
-
-    context.subscriptions.push(settingsPanelCommand);
-
-
+    context.subscriptions.push(cmd);
 }
-

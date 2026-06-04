@@ -80,26 +80,136 @@
         }
       }
     ],
-    "configuration": {
-      "title": "XSharp Tools Settings",
-      "properties": {
-        "xsharp-tools.showErrors": {
-          "type": "boolean",
-          "default": true,
-          "description": "If true, the extension will show errors in the Problems panel."
-        },
-        "xsharp-tools.showWarnings": {
-          "type": "boolean",
-          "default": true,
-          "description": "If true, the extension will show warnings in the Problems panel."
-        },
-        "xsharp-tools.groupByFile": {
-          "type": "boolean",
-          "default": true,
-          "description": "Regroup errors by file in the Problems panel."
+    "configuration": [
+      {
+        "title": "XSharp Tools",
+        "properties": {
+          "xsharp-tools.showErrors": {
+            "type": "boolean",
+            "default": true,
+            "description": "If true, the extension will show errors in the Problems panel."
+          },
+          "xsharp-tools.showWarnings": {
+            "type": "boolean",
+            "default": true,
+            "description": "If true, the extension will show warnings in the Problems panel."
+          },
+          "xsharp-tools.groupByFile": {
+            "type": "boolean",
+            "default": true,
+            "description": "Regroup errors by file in the Problems panel."
+          }
+        }
+      },
+      {
+        "title": "XSharp Language Server — Parser",
+        "properties": {
+          "xsharp.dialect": {
+            "type": "string",
+            "default": "Core",
+            "enum": ["Core", "VO", "Vulcan", "Harbour", "FoxPro", "XPP", "dBase"],
+            "description": "XSharp dialect used when parsing source files."
+          },
+          "xsharp.includePaths": {
+            "type": "string",
+            "default": "",
+            "description": "Semicolon-separated list of additional directories to search for #include files."
+          },
+          "xsharp.preprocessorSymbols": {
+            "type": "string",
+            "default": "",
+            "description": "Extra preprocessor symbols to define, separated by semicolons (e.g. DEBUG;MYFLAG)."
+          }
+        }
+      },
+      {
+        "title": "XSharp Language Server — Formatting",
+        "properties": {
+          "xsharp.keywordCase": {
+            "type": "string",
+            "default": "Upper",
+            "enum": ["None", "Upper", "Lower", "Title"],
+            "enumDescriptions": [
+              "No automatic case conversion.",
+              "Convert keywords to UPPERCASE (e.g. IF, FUNCTION).",
+              "Convert keywords to lowercase (e.g. if, function).",
+              "Convert keywords to TitleCase (e.g. If, Function)."
+            ],
+            "description": "Keyword case applied by the 'Fix all keyword casing' code action and the document formatter."
+          },
+          "xsharp.trimTrailingWhitespace": {
+            "type": "boolean",
+            "default": true,
+            "description": "Remove trailing whitespace from each line when formatting."
+          },
+          "xsharp.insertFinalNewline": {
+            "type": "boolean",
+            "default": false,
+            "description": "Ensure the file ends with a newline when formatting."
+          }
+        }
+      },
+      {
+        "title": "XSharp Language Server — Indentation",
+        "properties": {
+          "xsharp.indentNamespace": {
+            "type": "boolean",
+            "default": false,
+            "description": "Indent entities declared inside a NAMESPACE block."
+          },
+          "xsharp.indentEntityContent": {
+            "type": "boolean",
+            "default": true,
+            "description": "Indent multiline members (methods, properties, …) inside a CLASS or STRUCTURE."
+          },
+          "xsharp.indentFieldContent": {
+            "type": "boolean",
+            "default": true,
+            "description": "Indent single-line fields and properties inside a CLASS or STRUCTURE."
+          },
+          "xsharp.indentBlockContent": {
+            "type": "boolean",
+            "default": true,
+            "description": "Indent statements inside FUNCTION, METHOD, PROCEDURE, and similar code blocks. Mirrors the 'indentFunctionBody' on-type-formatting behaviour."
+          },
+          "xsharp.indentCaseLabel": {
+            "type": "boolean",
+            "default": false,
+            "description": "Indent CASE and OTHERWISE labels inside a DO CASE / SWITCH block. When false (default) they align with the opener."
+          },
+          "xsharp.indentCaseContent": {
+            "type": "boolean",
+            "default": true,
+            "description": "Indent statements inside each CASE / OTHERWISE branch."
+          },
+          "xsharp.indentMultiLines": {
+            "type": "boolean",
+            "default": true,
+            "description": "Indent continuation lines in multi-line statements (lines ending with a continuation character)."
+          },
+          "xsharp.indentPreprocessorLines": {
+            "type": "boolean",
+            "default": false,
+            "description": "Indent preprocessor directives (#region, #ifdef, #endif, …) with the surrounding code."
+          }
+        }
+      },
+      {
+        "title": "XSharp Language Server — Diagnostics",
+        "properties": {
+          "xsharp.semanticDiagnostics": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable additional semantic diagnostics (e.g. wrong argument count XS0001, unknown LOCAL type XS0003). Off by default — may produce false positives without full type resolution."
+          },
+          "xsharp.warnOnUndefinedCalls": {
+            "type": "boolean",
+            "default": false,
+            "description": "When true (and semanticDiagnostics is enabled), flag calls to functions not found in the workspace index or referenced assemblies (XS0002). High false-positive risk for runtime functions."
+          }
         }
       }
-    },
+    ],
     "commands": [
       {
         "command": "xsharp.buildProject",
