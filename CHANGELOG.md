@@ -6,6 +6,18 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-05
+
+### Added
+- Project Configurator now has full **Language**, **Dialect**, and **Package** tabs exposing all major compiler options (late binding, named args, unsafe code, nullable, VO compatibility flags, FoxPro/XPP dialect flags, NuGet package metadata, assembly info, …)
+- Project Configurator has a new **Build** tab with per-configuration build settings (output path, optimize, debug type, …)
+- **Package tab is hidden for legacy (non-SDK-style) projects** — package properties are not written to the `.xsproj` for legacy projects
+- `.xh` header files are now watched by the LSP client (file-change notifications sent to the language server)
+- Settings panel has new **Formatting** section: keyword case (`Upper` / `Lower` / `Title` / `None`), trim trailing whitespace, insert final newline
+- Settings panel has new **Indentation** section: indent namespace content, entity content, field content, block content, CASE labels, CASE content, continuation lines, preprocessor directives
+- Settings panel has new **Diagnostics** section: enable semantic diagnostics, warn on undefined function calls
+- All new settings are exposed as `xsharp.*` VS Code workspace settings and forwarded to the LSP server
+
 ## [0.5.0] - 2026-05-11
 
 ### Added

@@ -2,7 +2,7 @@
   "name": "xsharp-tools",
   "displayName": "XSharp Tools",
   "description": "Build and Run XSharp Projects from VSCode",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "icon": "xsharp.png",
   "publisher": "XSharp-BV",
   "repository": {
