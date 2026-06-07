@@ -7,6 +7,7 @@ import { registerRunCommand } from './commands/runCommand';
 import { registerToggleWarnings } from './commands/toggleWarnings';
 import { registerSettingsPanelCommand } from './commands/settingsPanelCommand';
 import { registerConfigProjectCommand } from './commands/configProjectCommand';
+import { registerCreateProjectCommand } from './commands/createProjectCommand';
 import { registerOpenFolderCommand } from './commands/openFolderCommand';
 import { registerLSPClient } from './lsp/lspClient';
 import { deactivateLSPClient } from './lsp/lspClient';
@@ -39,8 +40,18 @@ export function activate(context: vscode.ExtensionContext) {
 
   registerConfigProjectCommand(context);
 
+  registerCreateProjectCommand(context);
+
   if (!vscode.workspace.getConfiguration("launch").get("configurations")) {
     vscode.commands.executeCommand("xsharp.createLaunchConfig");
+  }
+
+  // If we just scaffolded a new project and reloaded into its folder, open the
+  // configurator once so the user can review/adjust settings right away.
+  const pendingConfigureProject = context.globalState.get<string>('xsharp.pendingConfigureProject');
+  if (pendingConfigureProject && vscode.workspace.workspaceFolders?.some(f => f.uri.fsPath === pendingConfigureProject)) {
+    context.globalState.update('xsharp.pendingConfigureProject', undefined);
+    vscode.commands.executeCommand('xsharp.configureProject');
   }
 }
 

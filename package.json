@@ -233,6 +233,10 @@
         "title": "Configure XSharp Project"
       },
       {
+        "command": "xsharp.createProject",
+        "title": "Create New XSharp Project"
+      },
+      {
         "command": "xsharp.openFolderOfActiveFile",
         "title": "Open Folder of Active File"
       }
@@ -275,6 +279,11 @@
           "command": "xsharp.configureProject",
           "when": "true",
           "group": "xssub_navigation@4"
+        },
+        {
+          "command": "xsharp.createProject",
+          "when": "explorerResourceIsFolder",
+          "group": "xssub_navigation@5"
         }
       ],
       "editor/title/run": [

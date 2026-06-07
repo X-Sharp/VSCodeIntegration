@@ -6,6 +6,11 @@ The extension and its settings are available via the command palette of Visual S
 
 ## Features
 
+- **Create New XSharp Project** wizard scaffolds a new project from the X# `dotnet new`
+  templates installed with your XSharp SDK (Console, Class Library, WinForms, WPF, Web API,
+  VO/FoxPro/Harbour/Vulcan/XBase++ dialect variants, …). Available from the Command Palette
+  or by right-clicking a folder in the Explorer. Opens the new project and launches the
+  **Configure XSharp Project** panel automatically on first run.
 - Build and run XSharp projects directly from VS Code via **dotnet build** / **dotnet run**.
   Build output appears in the dedicated **XSharp Build** output channel and errors/warnings are reported in the **Problems** panel.
 - Keyboard shortcuts: `Ctrl+Shift+B` to build, `Ctrl+F5` to run (active when an XSharp file is open).

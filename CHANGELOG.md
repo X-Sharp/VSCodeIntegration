@@ -7,6 +7,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [Unreleased]
 
 ### Added
+- **New "Create New XSharp Project" command** scaffolds a project from the X# `dotnet new` templates installed with the XSharp SDK (Console, Class Library, WinForms, WPF, Web API, and dialect-specific variants for VO/FoxPro/Harbour/Vulcan/XBase++). Available from the Command Palette or by right-clicking a folder in the Explorer; opens the new project and launches **Configure XSharp Project** automatically on first run
 - **Configure XSharp Project now opens for legacy (non-SDK-style) `.xsproj` projects**, not just SDK-style ones
 - General tab adapts to the project style: SDK-style projects show **Target Framework** (`TargetFramework`/`TargetFrameworks`), legacy projects show **Target Framework Version** (`TargetFrameworkVersion`)
 - Build tab's "Treat warnings as errors" adapts to the project style: SDK-style projects keep the None/All/Specific code-list selector (`WarningsAsErrors`), legacy projects get a simple checkbox (`TreatWarningsAsErrors`)
