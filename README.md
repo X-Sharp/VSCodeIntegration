@@ -10,11 +10,14 @@ The extension and its settings are available via the command palette of Visual S
   Build output appears in the dedicated **XSharp Build** output channel and errors/warnings are reported in the **Problems** panel.
 - Keyboard shortcuts: `Ctrl+Shift+B` to build, `Ctrl+F5` to run (active when an XSharp file is open).
 - In workspaces with multiple `.xsproj` files, a quick-pick menu lets you choose which project to build.
-- Configure project settings via the **Configure XSharp Project** panel, which exposes:
-  - **General** tab: assembly name, target framework, dialect, output type, resource options.
+- Configure project settings via the **Configure XSharp Project** panel, supporting both
+  SDK-style and legacy (non-SDK-style) `.xsproj` projects. It exposes:
+  - **General** tab: assembly name, target framework (Target Framework Version for legacy
+    projects), dialect, output type, resource options.
   - **Language** tab: late binding, named args, unsafe code, nullable, memory variables, namespaces, preprocessor, and more.
   - **Dialect** tab: all VO compatibility flags (VO1–VO17) and dialect-specific flags (FoxPro, XPP).
-  - **Build** tab: per-configuration output path, optimize, debug type, and other build properties.
+  - **Build** tab: per-configuration output path, optimize, debug type, treat-warnings-as-errors
+    (a code-list selector for SDK-style projects, a checkbox for legacy projects), and other build properties.
   - **Package** tab *(SDK-style projects only)*: NuGet package metadata and assembly info. Hidden for legacy `.xsproj` files.
 - **XSharp Tools Settings** panel for controlling the extension and LSP server behaviour (Build & Run, Parser, Formatting, Indentation, Diagnostics).
 - **Open Folder of Active File** reveals the current file in the OS file explorer.

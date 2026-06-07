@@ -6,6 +6,15 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+- **Configure XSharp Project now opens for legacy (non-SDK-style) `.xsproj` projects**, not just SDK-style ones
+- General tab adapts to the project style: SDK-style projects show **Target Framework** (`TargetFramework`/`TargetFrameworks`), legacy projects show **Target Framework Version** (`TargetFrameworkVersion`)
+- Build tab's "Treat warnings as errors" adapts to the project style: SDK-style projects keep the None/All/Specific code-list selector (`WarningsAsErrors`), legacy projects get a simple checkbox (`TreatWarningsAsErrors`)
+- Package tab remains hidden for legacy projects (NuGet/assembly metadata doesn't apply to them)
+
+### Fixed
+- Saving project settings no longer drops XML comments or reorders elements in the `.xsproj` file — the configurator now parses and rewrites the XML with `fast-xml-parser`'s order-preserving mode, so comments and formatting survive a load/save round-trip
+
 ## [0.6.0] - 2026-06-05
 
 ### Added

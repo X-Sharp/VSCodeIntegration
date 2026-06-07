@@ -150,8 +150,8 @@ export function getConfigProjectHtml(
           <input type="text" id="assemblyName" value="${esc(s.assemblyName)}">
         </div>
         <div class="field">
-          <div class="field-label">Target Framework:</div>
-          <input type="text" id="targetFramework" value="${esc(s.targetFramework)}" placeholder="e.g. net48, net8.0">
+          <div class="field-label">${isSdkStyle ? 'Target Framework:' : 'Target Framework Version:'}</div>
+          <input type="text" id="targetFramework" value="${esc(s.targetFramework)}" placeholder="${isSdkStyle ? 'e.g. net48, net8.0' : 'e.g. v4.6, v4.7.2'}">
         </div>
         <div class="field">
           <div class="field-label">Dialect:</div>
@@ -275,6 +275,7 @@ export function getConfigProjectHtml(
             <option value="4">4</option>
           </select>
         </div>
+        ${isSdkStyle ? `
         <div class="field">
           <div class="field-label">Treat warnings as errors:</div>
           <select id="warningsTreatment">
@@ -287,6 +288,9 @@ export function getConfigProjectHtml(
           <div class="field-label">Warning codes (semicolon-separated):</div>
           <input type="text" id="warningsAsErrors" placeholder="e.g. CS0168;CS0219">
         </div>
+        ` : `
+        <label class="cb"><input type="checkbox" id="treatWarningsAsErrors">Treat warnings as errors</label>
+        `}
         <div class="field">
           <div class="field-label">Suppress Warnings (NoWarn):</div>
           <input type="text" id="noWarn" placeholder="e.g. CS0168;CS0219">
@@ -432,6 +436,7 @@ export function getConfigProjectHtml(
       const wl = document.getElementById('warningLevel');
       if (wl) wl.value = v.warningLevel || '4';
 
+      ${isSdkStyle ? `
       // Treat warnings as errors: derive treatment from raw WarningsAsErrors value
       const wae = v.warningsAsErrors || '';
       const wt  = document.getElementById('warningsTreatment');
@@ -447,6 +452,9 @@ export function getConfigProjectHtml(
         if (waei) waei.value = '';
       }
       if (waef) waef.style.display = (wt && wt.value === 'specific') ? 'block' : 'none';
+      ` : `
+      b('treatWarningsAsErrors', v.treatWarningsAsErrors);
+      `}
 
       t('noWarn', v.noWarn);
 
@@ -482,10 +490,14 @@ export function getConfigProjectHtml(
       v.assemblyOriginatorKeyFile= t('assemblyOriginatorKeyFile');
       v.warningLevel             = t('warningLevel');
 
+      ${isSdkStyle ? `
       const treatment = t('warningsTreatment');
       v.warningsAsErrors = treatment === 'all' ? '*'
                          : treatment === 'specific' ? t('warningsAsErrors')
                          : '';
+      ` : `
+      v.treatWarningsAsErrors = b('treatWarningsAsErrors');
+      `}
 
       v.noWarn             = t('noWarn');
       const xmlCb          = document.getElementById('xmlDocEnabled');
@@ -503,10 +515,13 @@ export function getConfigProjectHtml(
     });
 
     // Show/hide specific-warnings text box
-    document.getElementById('warningsTreatment').addEventListener('change', e => {
-      document.getElementById('warningsAsErrorsField').style.display =
-        e.target.value === 'specific' ? 'block' : 'none';
-    });
+    const warningsTreatmentEl = document.getElementById('warningsTreatment');
+    if (warningsTreatmentEl) {
+      warningsTreatmentEl.addEventListener('change', e => {
+        document.getElementById('warningsAsErrorsField').style.display =
+          e.target.value === 'specific' ? 'block' : 'none';
+      });
+    }
 
     // Show/hide documentation file path
     document.getElementById('xmlDocEnabled').addEventListener('change', e => {

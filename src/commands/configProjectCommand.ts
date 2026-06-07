@@ -5,7 +5,10 @@ import { findProjectFile } from '../utils/findProject';
 import { xsProjReader } from '../utils/xsProjReader';
 import { getConfigProjectHtml } from '../panels/configProject';
 
-import { XMLParser, XMLBuilder } from 'fast-xml-parser';
+import {
+    parseXml, buildXml, findElement, findElements, children, attr,
+    setElementText, removeElement, setOrRemoveElementText
+} from '../utils/msbuildXml';
 
 function getNonce(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -31,17 +34,8 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
         const xmlText = Buffer.from(content).toString('utf8');
         const props = new xsProjReader(xmlText);
 
-        const parsedForSdk = new XMLParser({ ignoreAttributes: false }).parse(xmlText);
-        const isSdkStyle = !!parsedForSdk?.Project?.['@_Sdk'];
-
-        if (!isSdkStyle) {
-            vscode.window.showWarningMessage(
-                'Configure XSharp Project is only supported for .NET SDK-style projects. ' +
-                'Legacy (.xsproj without Sdk attribute) projects must be configured manually.'
-            );
-            panel.dispose();
-            return;
-        }
+        const projectNode = findElement(parseXml(xmlText), 'Project');
+        const isSdkStyle = !!(projectNode && attr(projectNode, 'Sdk'));
 
         // ---- Per-configuration build values ----
         const configs = props.getConfigs();
@@ -63,7 +57,10 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
                 delaySign:                 r('DelaySign'),
                 assemblyOriginatorKeyFile: r('AssemblyOriginatorKeyFile'),
                 warningLevel:              r('WarningLevel'),
+                // SDK-style projects use WarningsAsErrors (code list, or '*' for all);
+                // legacy projects use the plain boolean TreatWarningsAsErrors.
                 warningsAsErrors:          r('WarningsAsErrors'),
+                treatWarningsAsErrors:     r('TreatWarningsAsErrors') || 'false',
                 documentationFile:         r('DocumentationFile'),
                 useSharedCompilation:      r('UseSharedCompilation'),
                 suppressRcWarnings:        r('SuppressRCWarnings'),
@@ -77,7 +74,9 @@ export function registerConfigProjectCommand(context: vscode.ExtensionContext) {
             assemblyName:                 props.get('AssemblyName') ?? '',
             rootNamespace:                props.get('RootNamespace') ?? '',
             outputType:                   props.get('OutputType') ?? 'Exe',
-            targetFramework:              props.get('TargetFramework') ?? props.get('TargetFrameworks') ?? '',
+            targetFramework:              isSdkStyle
+                ? (props.get('TargetFramework') ?? props.get('TargetFrameworks') ?? '')
+                : (props.get('TargetFrameworkVersion') ?? ''),
             dialect:                      props.get('Dialect') ?? 'Core',
             startupObject:                props.get('StartupObject') ?? '',
             autoGenerateBindingRedirects: props.get('AutoGenerateBindingRedirects') ?? 'false',
@@ -174,106 +173,112 @@ function updateProjectXml(
     isSdkStyle: boolean,
     buildByConfig: Record<string, Record<string, string>>
 ): string {
-    const parser = new XMLParser({ ignoreAttributes: false });
-    const parsed = parser.parse(xmlText);
-    const rawGroup = parsed?.Project?.PropertyGroup;
-    if (!rawGroup) {
+    const ast = parseXml(xmlText);
+    const project = findElement(ast, 'Project');
+    if (!project) {
+        return xmlText;
+    }
+    const projectChildren = children(project);
+    const allGroups = findElements(projectChildren, 'PropertyGroup');
+    if (allGroups.length === 0) {
         return xmlText;
     }
 
-    // Normalise to array so we can find/append groups uniformly.
-    const allGroups: any[] = Array.isArray(rawGroup) ? rawGroup : [rawGroup];
-    if (!Array.isArray(parsed.Project.PropertyGroup)) {
-        parsed.Project.PropertyGroup = allGroups;
-    }
-
     // ---- Global group (first unconditioned PropertyGroup) ----
-    const group = allGroups.find((g: any) => !g['@_Condition']) ?? allGroups[0];
+    const group = allGroups.find((g: any) => !attr(g, 'Condition')) ?? allGroups[0];
+    const gc = children(group);
 
     // General
-    group.AssemblyName                 = values.assemblyName;
-    group.RootNamespace                = values.rootNamespace;
-    group.OutputType                   = values.outputType;
-    group.TargetFramework              = values.targetFramework;
-    group.Dialect                      = values.dialect;
-    group.StartupObject                = values.startupObject;
-    group.AutoGenerateBindingRedirects = values.autoGenerateBindingRedirects;
-    group.NoWin32Manifest              = values.noWin32Manifest;
-    group.UseNativeVersion             = values.useNativeVersion;
-    group.VulcanCompatibleResources    = values.vulcanCompatibleResources;
+    setElementText(gc, 'AssemblyName', values.assemblyName);
+    setElementText(gc, 'RootNamespace', values.rootNamespace);
+    setElementText(gc, 'OutputType', values.outputType);
+    // Target framework: SDK-style projects use TargetFramework, legacy projects use
+    // TargetFrameworkVersion — write the one matching the project style and remove
+    // the other so we don't leave a stale property behind.
+    if (isSdkStyle) {
+        setElementText(gc, 'TargetFramework', values.targetFramework);
+        removeElement(gc, 'TargetFrameworkVersion');
+    } else {
+        setElementText(gc, 'TargetFrameworkVersion', values.targetFramework);
+        removeElement(gc, 'TargetFramework');
+        removeElement(gc, 'TargetFrameworks');
+    }
+    setElementText(gc, 'Dialect',                      values.dialect);
+    setElementText(gc, 'StartupObject',                values.startupObject);
+    setElementText(gc, 'AutoGenerateBindingRedirects', values.autoGenerateBindingRedirects);
+    setElementText(gc, 'NoWin32Manifest',              values.noWin32Manifest);
+    setElementText(gc, 'UseNativeVersion',             values.useNativeVersion);
+    setElementText(gc, 'VulcanCompatibleResources',    values.vulcanCompatibleResources);
     // Language
-    group.LB                      = values.lateBinding;
-    group.NamedArgs               = values.namedArgs;
-    group.Unsafe                  = values.unsafeCode;
-    group.CS                      = values.caseSensitive;
-    group.InitLocals               = values.initLocals;
-    group.OVF                      = values.overflowEx;
-    group.AZ                       = values.zeroBasedArrays;
-    group.EnforceSelf              = values.enforceSelf;
-    group.Allowdot                 = values.allowDot;
-    group.Nullable                 = values.nullable;
-    group.EnforceOverride          = values.enforceVirtualOverride;
-    group.AllowOldStyleAssignments = values.allowOldStyle;
-    group.ModernSyntax             = values.modernSyntax;
-    group.MemVar                   = values.memVar;
-    group.Undeclared               = values.undeclared;
-    group.INS                      = values.ins;
-    group.NS                       = values.ns;
-    group.NoStandardDefs           = values.noStandardDefs;
-    group.IncludePaths             = values.includePaths;
-    group.StandardDefs             = values.standardDefs;
+    setElementText(gc, 'LB',                      values.lateBinding);
+    setElementText(gc, 'NamedArgs',               values.namedArgs);
+    setElementText(gc, 'Unsafe',                  values.unsafeCode);
+    setElementText(gc, 'CS',                      values.caseSensitive);
+    setElementText(gc, 'InitLocals',               values.initLocals);
+    setElementText(gc, 'OVF',                      values.overflowEx);
+    setElementText(gc, 'AZ',                       values.zeroBasedArrays);
+    setElementText(gc, 'EnforceSelf',              values.enforceSelf);
+    setElementText(gc, 'Allowdot',                 values.allowDot);
+    setElementText(gc, 'Nullable',                 values.nullable);
+    setElementText(gc, 'EnforceOverride',          values.enforceVirtualOverride);
+    setElementText(gc, 'AllowOldStyleAssignments', values.allowOldStyle);
+    setElementText(gc, 'ModernSyntax',             values.modernSyntax);
+    setElementText(gc, 'MemVar',                   values.memVar);
+    setElementText(gc, 'Undeclared',               values.undeclared);
+    setElementText(gc, 'INS',                      values.ins);
+    setElementText(gc, 'NS',                       values.ns);
+    setElementText(gc, 'NoStandardDefs',           values.noStandardDefs);
+    setElementText(gc, 'IncludePaths',             values.includePaths);
+    setElementText(gc, 'StandardDefs',             values.standardDefs);
     // Dialect
-    group.Vo1  = values.vo1;  group.Vo2  = values.vo2;  group.Vo3  = values.vo3;
-    group.Vo4  = values.vo4;  group.Vo5  = values.vo5;  group.Vo6  = values.vo6;
-    group.Vo7  = values.vo7;  group.Vo8  = values.vo8;  group.Vo9  = values.vo9;
-    group.Vo10 = values.vo10; group.Vo11 = values.vo11; group.Vo12 = values.vo12;
-    group.Vo13 = values.vo13; group.Vo14 = values.vo14; group.Vo15 = values.vo15;
-    group.Vo16 = values.vo16; group.Vo17 = values.vo17;
-    group.Fox2 = values.fox2;
-    group.Xpp1 = values.xpp1;
+    setElementText(gc, 'Vo1',  values.vo1);  setElementText(gc, 'Vo2',  values.vo2);  setElementText(gc, 'Vo3',  values.vo3);
+    setElementText(gc, 'Vo4',  values.vo4);  setElementText(gc, 'Vo5',  values.vo5);  setElementText(gc, 'Vo6',  values.vo6);
+    setElementText(gc, 'Vo7',  values.vo7);  setElementText(gc, 'Vo8',  values.vo8);  setElementText(gc, 'Vo9',  values.vo9);
+    setElementText(gc, 'Vo10', values.vo10); setElementText(gc, 'Vo11', values.vo11); setElementText(gc, 'Vo12', values.vo12);
+    setElementText(gc, 'Vo13', values.vo13); setElementText(gc, 'Vo14', values.vo14); setElementText(gc, 'Vo15', values.vo15);
+    setElementText(gc, 'Vo16', values.vo16); setElementText(gc, 'Vo17', values.vo17);
+    setElementText(gc, 'Fox2', values.fox2);
+    setElementText(gc, 'Xpp1', values.xpp1);
     // Package (SDK-style only)
     if (isSdkStyle) {
-        group.AssemblyTitle            = values.assemblyTitle;
-        group.Description              = values.description;
-        group.Company                  = values.company;
-        group.Copyright                = values.copyright;
-        group.NeutralLanguage          = values.neutralLanguage;
-        group.PackageId                = values.packageId;
-        group.PackageVersion           = values.packageVersion;
-        group.Authors                  = values.authors;
-        group.PackageTags              = values.packageTags;
-        group.PackageLicenseExpression = values.packageLicenseExpression;
-        group.PackageProjectUrl        = values.packageProjectUrl;
-        group.RepositoryUrl            = values.repositoryUrl;
-        group.RepositoryType           = values.repositoryType;
-        group.GeneratePackageOnBuild   = values.generatePackageOnBuild;
-        group.IsPackable               = values.isPackable;
+        setElementText(gc, 'AssemblyTitle',            values.assemblyTitle);
+        setElementText(gc, 'Description',              values.description);
+        setElementText(gc, 'Company',                  values.company);
+        setElementText(gc, 'Copyright',                values.copyright);
+        setElementText(gc, 'NeutralLanguage',          values.neutralLanguage);
+        setElementText(gc, 'PackageId',                values.packageId);
+        setElementText(gc, 'PackageVersion',           values.packageVersion);
+        setElementText(gc, 'Authors',                  values.authors);
+        setElementText(gc, 'PackageTags',              values.packageTags);
+        setElementText(gc, 'PackageLicenseExpression', values.packageLicenseExpression);
+        setElementText(gc, 'PackageProjectUrl',        values.packageProjectUrl);
+        setElementText(gc, 'RepositoryUrl',            values.repositoryUrl);
+        setElementText(gc, 'RepositoryType',           values.repositoryType);
+        setElementText(gc, 'GeneratePackageOnBuild',   values.generatePackageOnBuild);
+        setElementText(gc, 'IsPackable',               values.isPackable);
     }
 
     // ---- Per-configuration groups (Build tab) ----
     for (const [config, buildVals] of Object.entries(buildByConfig)) {
         // Find the first PropertyGroup whose Condition references this config name.
         let configGroup = allGroups.find((g: any) => {
-            const cond: string = g['@_Condition'] ?? '';
+            const cond: string = attr(g, 'Condition') ?? '';
             return cond.includes(`'${config}|`) || cond.includes(`"${config}|`);
         });
 
         if (!configGroup) {
             configGroup = {
-                '@_Condition': `'$(Configuration)|$(Platform)' == '${config}|AnyCPU'`
+                PropertyGroup: [],
+                ':@': { '@_Condition': `'$(Configuration)|$(Platform)' == '${config}|AnyCPU'` }
             };
+            projectChildren.push(configGroup);
             allGroups.push(configGroup);
         }
+        const cgc = children(configGroup);
 
-        // Write a property only when the value is non-empty; delete it otherwise
+        // Write a property only when the value is non-empty; remove it otherwise
         // so that MSBuild defaults take effect (avoids littering the file).
-        const set = (name: string, value: string) => {
-            if (value !== undefined && value !== '') {
-                configGroup[name] = value;
-            } else {
-                delete configGroup[name];
-            }
-        };
+        const set = (name: string, value: string) => setOrRemoveElementText(cgc, name, value);
 
         set('OutputPath',                buildVals.outputPath);
         set('IntermediateOutputPath',    buildVals.intermediateOutputPath);
@@ -287,7 +292,16 @@ function updateProjectXml(
         set('DelaySign',                 buildVals.delaySign);
         set('AssemblyOriginatorKeyFile', buildVals.assemblyOriginatorKeyFile);
         set('WarningLevel',              buildVals.warningLevel);
-        set('WarningsAsErrors',          buildVals.warningsAsErrors);
+        // SDK-style: WarningsAsErrors (code list / '*' for all). Legacy: plain
+        // boolean TreatWarningsAsErrors. Write only the one matching the project
+        // style, and remove the other so we don't leave a stale property behind.
+        if (isSdkStyle) {
+            set('WarningsAsErrors', buildVals.warningsAsErrors);
+            removeElement(cgc, 'TreatWarningsAsErrors');
+        } else {
+            set('TreatWarningsAsErrors', buildVals.treatWarningsAsErrors === 'true' ? 'True' : 'False');
+            removeElement(cgc, 'WarningsAsErrors');
+        }
         set('DocumentationFile',         buildVals.documentationFile);
         set('UseSharedCompilation',      buildVals.useSharedCompilation);
         set('SuppressRCWarnings',        buildVals.suppressRcWarnings);
@@ -295,6 +309,5 @@ function updateProjectXml(
         set('NoWarn',                    buildVals.noWarn);
     }
 
-    const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
-    return builder.build(parsed);
+    return buildXml(ast);
 }

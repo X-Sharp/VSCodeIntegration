@@ -1,26 +1,23 @@
-import { XMLParser } from 'fast-xml-parser';
+import { parseXml, findElement, findElements, children, attr, tagName, elementText } from './msbuildXml';
 
 export class xsProjReader {
   private values: Record<string, string>;
   private configGroups: Map<string, Record<string, string>> = new Map();
 
   constructor(xmlContent: string) {
-    const parser = new XMLParser({ ignoreAttributes: false });
-    const parsed = parser.parse(xmlContent);
-
-    const rawGroup = parsed?.Project?.PropertyGroup;
-    const groups: any[] = Array.isArray(rawGroup) ? rawGroup : rawGroup ? [rawGroup] : [];
+    const ast = parseXml(xmlContent);
+    const project = findElement(ast, 'Project');
+    const projectChildren = project ? children(project) : [];
+    const groups = findElements(projectChildren, 'PropertyGroup');
 
     // First unconditioned group → global properties
-    const globalGroup = groups.find((g: any) => !g['@_Condition']) ?? groups[0];
-    this.values = globalGroup && typeof globalGroup === 'object'
-      ? this.normalizePropertyGroup(globalGroup)
-      : {};
+    const globalGroup = groups.find((g: any) => !attr(g, 'Condition')) ?? groups[0];
+    this.values = globalGroup ? this.normalizePropertyGroup(globalGroup) : {};
 
     // Groups with a Condition → per-configuration (same config may appear in
     // multiple PropertyGroups; merge them so we see the union of all properties).
     for (const group of groups) {
-      const condition: string = group['@_Condition'] ?? '';
+      const condition: string = attr(group, 'Condition') ?? '';
       // Matches: '$(Configuration)|$(Platform)' == 'Debug|AnyCPU'
       const match = condition.match(/==\s*['"]([^|'"]+)\|/);
       if (match) {
@@ -74,16 +71,10 @@ export class xsProjReader {
 
   private normalizePropertyGroup(group: any): Record<string, string> {
     const result: Record<string, string> = {};
-    for (const [key, value] of Object.entries(group)) {
-      if (key.startsWith('@_')) { continue; } // skip XML attributes
-      const lower = key.toLowerCase();
-      if (typeof value === 'string') {
-        result[lower] = value;
-      } else if (Array.isArray(value)) {
-        result[lower] = String(value[0]);
-      } else if (value !== null && value !== undefined) {
-        result[lower] = String(value);
-      }
+    for (const child of children(group)) {
+      const tag = tagName(child);
+      if (!tag) { continue; } // skip text/comment nodes
+      result[tag.toLowerCase()] = elementText(child);
     }
     return result;
   }
