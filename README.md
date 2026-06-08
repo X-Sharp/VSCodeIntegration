@@ -27,7 +27,7 @@ The extension and its settings are available via the command palette of Visual S
 - **XSharp Tools Settings** panel for controlling the extension and LSP server behaviour (Build & Run, Parser, Formatting, Indentation, Diagnostics).
 - **Open Folder of Active File** reveals the current file in the OS file explorer.
 
-- Starting from Version 0.4.0, the package integrates a basic LSP Client that communicates with the [xsharp-lsp-server](https://github.com/fforay/xsharp-lsp-server). The installer (.vsix) will contain the XSharpLanguageServer.exe. The server must be **published** as a self-contained EXE and put into the **server** folder before creating the vsix file. If the EXE is missing, the extension will show a warning and continue without IntelliSense.
+- Starting from Version 0.4.0, the package integrates a basic LSP Client that communicates with the [xsharp-lsp-server](https://github.com/fforay/xsharp-lsp-server). The installer (.vsix) will contain the XSharpLanguageServer.exe. The server is **no longer published as a self-contained EXE** and requires **.NET 10** to be installed on the machine. Put the EXE into the **server** folder before creating the vsix file. If the EXE is missing, the extension will show a warning and continue without IntelliSense.
 
 - The extension ships a TextMate grammar (`syntaxes/xsharp.tmLanguage.json`) providing syntax highlighting for all XSharp file types (`.prg`, `.xs`, `.ch`, `.xsc`, `.xsprg`, `.prgx`, `.xh`). Semantic tokens emitted by the LSP server are mapped to TextMate scopes so that any VS Code theme can colour them correctly.
 
@@ -35,6 +35,8 @@ The extension and its settings are available via the command palette of Visual S
 
 You must have the latest XSharp Language version installed.  
 You can get it here : http://www.xsharp.eu  
+
+**.NET 10** must be installed on the machine — the LSP server (`XSharpLanguageServer.exe`) is no longer a self-contained executable and depends on the .NET 10 runtime.
 
 It is good also to install the [X# Lang extension](https://marketplace.visualstudio.com/items?itemName=InfomindsAG.xsharp-lang) in order to have Syntax Highlighting, if you want more options.
 
@@ -109,7 +111,7 @@ From VSCode
 
 ## Compile & Package the extension
 
-The LSP server must be "published" as a self-contained EXE and put into the **server** folder before creating the vsix file
+The LSP server must be built (no longer self-contained — requires .NET 10 at runtime) and put into the **server** folder before creating the vsix file
 
 Compile with :  
 
@@ -125,6 +127,12 @@ Create .vsix with :
 None at this time. Please report issues on the [GitHub repository](https://github.com/X-Sharp/VSCodeIntegration/issues).
 
 ## Release Notes
+
+### 0.6.5
+- **Create New XSharp Project** wizard: scaffold Console, Class Library, WinForms, WPF, Web API, and dialect-specific projects from the Command Palette or Explorer context menu
+- **Configure XSharp Project** now works with legacy (non-SDK-style) `.xsproj` files — full read/write support, adapts General/Build tabs to the project type, Package tab remains hidden
+- Saving project settings preserves XML comments and element order in the `.xsproj` file
+- Fixed FoxPro `&&` line-comment tokenisation in the TextMate grammar (synced with LSP server)
 
 ### 0.6.0
 - Project Configurator expanded with full Language, Dialect, Build, and Package tabs

@@ -4,17 +4,18 @@ All notable changes to the "xsharp-tools" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [0.6.5] - 2026-06-08
 
 ### Added
 - **New "Create New XSharp Project" command** scaffolds a project from the X# `dotnet new` templates installed with the XSharp SDK (Console, Class Library, WinForms, WPF, Web API, and dialect-specific variants for VO/FoxPro/Harbour/Vulcan/XBase++). Available from the Command Palette or by right-clicking a folder in the Explorer; opens the new project and launches **Configure XSharp Project** automatically on first run
-- **Configure XSharp Project now opens for legacy (non-SDK-style) `.xsproj` projects**, not just SDK-style ones
+- **Configure XSharp Project now opens for legacy (non-SDK-style) `.xsproj` projects**, not just SDK-style ones, with full read/write support for non-SDK build properties
 - General tab adapts to the project style: SDK-style projects show **Target Framework** (`TargetFramework`/`TargetFrameworks`), legacy projects show **Target Framework Version** (`TargetFrameworkVersion`)
 - Build tab's "Treat warnings as errors" adapts to the project style: SDK-style projects keep the None/All/Specific code-list selector (`WarningsAsErrors`), legacy projects get a simple checkbox (`TreatWarningsAsErrors`)
 - Package tab remains hidden for legacy projects (NuGet/assembly metadata doesn't apply to them)
 
 ### Fixed
 - Saving project settings no longer drops XML comments or reorders elements in the `.xsproj` file — the configurator now parses and rewrites the XML with `fast-xml-parser`'s order-preserving mode, so comments and formatting survive a load/save round-trip
+- `&&` is no longer tokenised as a bitwise-AND operator in FoxPro dialect files — the TextMate grammar now correctly treats it as the FoxPro line-comment introducer (synced with LSP server fix for `FOX_AND`/`EXP` tokens)
 
 ## [0.6.0] - 2026-06-05
 
