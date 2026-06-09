@@ -4,6 +4,13 @@ All notable changes to the "xsharp-tools" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.6.6] - 2026-06-09
+
+### Added
+- **Auto-sync parser settings from `.xsproj` on workspace open**: when the workspace contains exactly one `.xsproj` file, the extension now automatically reads `<Dialect>`, `<IncludePaths>`, and `<DefineConstants>` from it and updates the corresponding `xsharp.dialect`, `xsharp.includePaths`, and `xsharp.preprocessorSymbols` workspace settings. If multiple `.xsproj` files are present the current values are left unchanged. The sync also runs when workspace folders change.
+- **Settings panel dialect fix**: switching away from the XSharp Settings panel and back no longer reverts the dialect combo to the pre-change value — the panel now re-reads the current configuration whenever it becomes visible.
+- **LSP log output in the Output panel**: `window/logMessage` notifications from the language server are now routed to the **XSharp Language Server** output channel (visible in the Output panel dropdown). Protocol-level trace messages go to the separate **XSharp Language Server (Trace)** channel, controlled by the `xsharp.trace.server` setting. The output panel only opens automatically on errors.
+
 ## [0.6.5] - 2026-06-08
 
 ### Added

@@ -52,7 +52,9 @@ All settings are available via **XSharp Tools → XSharp Tools Settings** in the
 | `xsharp-tools.showWarnings` | `true` | Show warnings in the Problems panel |
 | `xsharp-tools.groupByFile` | `true` | Group errors and warnings by file |
 
-### Parser (LSP) - The Parser used for Syntax coloring; Sync with the xsproj file if one exist.
+### Parser (LSP)
+
+The parser is used for syntax colouring and IntelliSense. When a workspace is opened that contains exactly one `.xsproj` file, the dialect, include paths, and preprocessor symbols are automatically read from the project file and applied to the settings below. If the workspace has multiple `.xsproj` files the settings are left unchanged.
 
 | Setting | Default | Description |
 |---|---|---|
@@ -88,13 +90,14 @@ All settings are available via **XSharp Tools → XSharp Tools Settings** in the
 | `xsharp.semanticDiagnostics` | `false` | Enable extra semantic diagnostics (XS0001, XS0003). May produce false positives. |
 | `xsharp.warnOnUndefinedCalls` | `false` | Warn on calls to unknown functions (XS0002). Requires semantic diagnostics. |
 
-## Hidden LSP Server settings
+## LSP Output Channels
 
-If you want to track down what the LSP Server is doing, you can log some of its work.  
+The language server log is available directly in VS Code's **Output** panel:
 
-The Language Server will search for an Environment Variable called **XSHARPLSP_LOG_PATH**.  
-If the var doesn't exist, nothing will be logged.
-If the var indicates a folder, you should find a **XSharpLSPYYYYMMDD.log** file in that folder. It will contains some informations about the LSP Server work.
+- **XSharp Language Server** — receives all `window/logMessage` notifications sent by the server (info, warnings, errors). The panel opens automatically only on errors.
+- **XSharp Language Server (Trace)** — receives LSP protocol-level trace messages. Controlled by the `xsharp.trace.server` setting (`"off"` / `"messages"` / `"verbose"`).
+
+If you need deeper diagnostics, the Language Server will also write a log file when the environment variable **XSHARPLSP_LOG_PATH** is set to an existing folder — you will find a **XSharpLSPYYYYMMDD.log** file there.
 
 ## Installation
 
@@ -127,6 +130,11 @@ Create .vsix with :
 None at this time. Please report issues on the [GitHub repository](https://github.com/X-Sharp/VSCodeIntegration/issues).
 
 ## Release Notes
+
+### 0.6.6
+- **Auto-sync parser settings from `.xsproj`**: dialect, include paths, and preprocessor symbols are automatically read from the project file when opening a single-project workspace
+- **Settings panel dialect fix**: returning to the XSharp Settings panel after a tab switch now shows the correct (saved) dialect value
+- **LSP output in the Output panel**: language server logs appear in the **XSharp Language Server** channel; protocol traces in **XSharp Language Server (Trace)**
 
 ### 0.6.5
 - **Create New XSharp Project** wizard: scaffold Console, Class Library, WinForms, WPF, Web API, and dialect-specific projects from the Command Palette or Explorer context menu
