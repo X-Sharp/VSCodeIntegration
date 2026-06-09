@@ -24,7 +24,7 @@ The extension and its settings are available via the command palette of Visual S
   - **Build** tab: per-configuration output path, optimize, debug type, treat-warnings-as-errors
     (a code-list selector for SDK-style projects, a checkbox for legacy projects), and other build properties.
   - **Package** tab *(SDK-style projects only)*: NuGet package metadata and assembly info. Hidden for legacy `.xsproj` files.
-- **XSharp Tools Settings** panel for controlling the extension and LSP server behaviour (Build & Run, Parser, Formatting, Indentation, Diagnostics).
+- **XSharp Tools Settings** panel for controlling the extension and LSP server behaviour (Build & Run, Parser Dialect, Formatting, Indentation, Diagnostics).
 - **Open Folder of Active File** reveals the current file in the OS file explorer.
 
 - Starting from Version 0.4.0, the package integrates a basic LSP Client that communicates with the [xsharp-lsp-server](https://github.com/fforay/xsharp-lsp-server). The installer (.vsix) will contain the XSharpLanguageServer.exe. The server is **no longer published as a self-contained EXE** and requires **.NET 10** to be installed on the machine. Put the EXE into the **server** folder before creating the vsix file. If the EXE is missing, the extension will show a warning and continue without IntelliSense.
@@ -52,7 +52,7 @@ All settings are available via **XSharp Tools → XSharp Tools Settings** in the
 | `xsharp-tools.showWarnings` | `true` | Show warnings in the Problems panel |
 | `xsharp-tools.groupByFile` | `true` | Group errors and warnings by file |
 
-### Parser (LSP)
+### Parser (LSP) - The Parser used for Syntax coloring; Sync with the xsproj file if one exist.
 
 | Setting | Default | Description |
 |---|---|---|

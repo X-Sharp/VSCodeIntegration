@@ -11,6 +11,7 @@ import { registerCreateProjectCommand } from './commands/createProjectCommand';
 import { registerOpenFolderCommand } from './commands/openFolderCommand';
 import { registerLSPClient } from './lsp/lspClient';
 import { deactivateLSPClient } from './lsp/lspClient';
+import { syncDialectFromProject } from './utils/autoDialect';
 import { registerLaunchConfig } from './commands/launchConfig';
 import { registerDebugAdapter } from './commands/debugAdapter';
 
@@ -22,6 +23,10 @@ export function activate(context: vscode.ExtensionContext) {
   buildOutputChannel = vscode.window.createOutputChannel('XSharp Build');
   context.subscriptions.push(buildOutputChannel);
   console.log('XSharp extension activated');
+  syncDialectFromProject();
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders(() => syncDialectFromProject())
+  );
   registerLSPClient(context);
 
   registerLaunchConfig(context);

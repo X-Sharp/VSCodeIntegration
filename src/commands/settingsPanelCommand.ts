@@ -9,7 +9,6 @@ function getNonce(): string {
 export function registerSettingsPanelCommand(context: vscode.ExtensionContext) {
 
     const cmd = vscode.commands.registerCommand('xsharp.settingsPanel', () => {
-        const nonce = getNonce();
         const panel = vscode.window.createWebviewPanel(
             'xsharpSettings',
             'XSharp Settings',
@@ -17,10 +16,17 @@ export function registerSettingsPanelCommand(context: vscode.ExtensionContext) {
             { enableScripts: true }
         );
 
-        const tools = vscode.workspace.getConfiguration('xsharp-tools');
-        const lsp   = vscode.workspace.getConfiguration('xsharp');
+        function refreshHtml() {
+            const freshTools = vscode.workspace.getConfiguration('xsharp-tools');
+            const freshLsp   = vscode.workspace.getConfiguration('xsharp');
+            panel.webview.html = getSettingsPanelHtml({ tools: freshTools, lsp: freshLsp }, getNonce());
+        }
 
-        panel.webview.html = getSettingsPanelHtml({ tools, lsp }, nonce);
+        refreshHtml();
+
+        panel.onDidChangeViewState(e => {
+            if (e.webviewPanel.visible) { refreshHtml(); }
+        }, undefined, context.subscriptions);
 
         panel.webview.onDidReceiveMessage(
             async (message: { ns: string; setting: string; type: string; value: unknown }) => {
