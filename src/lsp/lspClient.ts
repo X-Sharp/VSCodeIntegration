@@ -5,6 +5,7 @@ import { workspace } from 'vscode';
 import {
     LanguageClient,
     LanguageClientOptions,
+    RevealOutputChannelOn,
     ServerOptions,
     TransportKind
 } from 'vscode-languageclient/node';
@@ -25,6 +26,10 @@ export function registerLSPClient(context: vscode.ExtensionContext) {
 
     console.log('X# LSP Server : ' + serverExe);
 
+    const outputChannel = vscode.window.createOutputChannel('XSharp Language Server');
+    const traceChannel  = vscode.window.createOutputChannel('XSharp Language Server (Trace)');
+    context.subscriptions.push(outputChannel, traceChannel);
+
     const serverOptions: ServerOptions = {
         run:   { command: serverExe, transport: TransportKind.stdio },
         debug: { command: serverExe, transport: TransportKind.stdio }
@@ -32,6 +37,9 @@ export function registerLSPClient(context: vscode.ExtensionContext) {
 
     const clientOptions: LanguageClientOptions = {
         documentSelector: [{ scheme: 'file', language: 'xsharp' }],
+        outputChannel,
+        traceOutputChannel: traceChannel,
+        revealOutputChannelOn: RevealOutputChannelOn.Error,
         synchronize: {
             // Forward all xsharp.* settings to the server via workspace/didChangeConfiguration.
             configurationSection: 'xsharp',
