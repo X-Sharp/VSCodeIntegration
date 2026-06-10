@@ -42,11 +42,19 @@
     "strings": {
       "patterns": [
         {
-          "name": "string.quoted.double.xsharp",
-          "begin": "\"",
+          "name": "string.quoted.escaped.xsharp",
+          "begin": "(?i)[eE]\"",
           "end": "\"",
           "patterns": [
             { "name": "constant.character.escape.xsharp", "match": "\\\\." }
+          ]
+        },
+        {
+          "name": "string.quoted.double.xsharp",
+          "begin": "(?i)(?<![eEiIcC])\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.xsharp", "match": "\"\"" }
           ]
         },
         {
@@ -54,7 +62,7 @@
           "begin": "'",
           "end": "'",
           "patterns": [
-            { "name": "constant.character.escape.xsharp", "match": "\\\\." }
+            { "name": "constant.character.escape.xsharp", "match": "''" }
           ]
         },
         {
