@@ -39,4 +39,20 @@ export async function syncDialectFromProject(): Promise<void> {
     if (cfg.get<string>('preprocessorSymbols') !== defines) {
         await cfg.update('preprocessorSymbols', defines, target);
     }
+
+    // Detect the /cs (case-sensitive) compiler switch.
+    // It can appear as <CaseSensitive>true</CaseSensitive> or inside <OtherFlags>.
+    const csProperty  = reader.getBool('CaseSensitive', false);
+    const otherFlags  = reader.get('OtherFlags') ?? '';
+    const csInFlags   = /(?:^|\s)\/cs(?:\s|$)/i.test(otherFlags);
+    const isCaseSensitive = csProperty || csInFlags;
+
+    if (isCaseSensitive && cfg.get<boolean>('normalizeIdentifierCase') === true) {
+        await cfg.update('normalizeIdentifierCase', false, target);
+        vscode.window.showWarningMessage(
+            'XSharp: "Normalize identifier casing" has been disabled because the project ' +
+            'uses the /cs (case-sensitive) compiler switch. Renaming identifiers to match ' +
+            'declaration casing would change program semantics in case-sensitive mode.'
+        );
+    }
 }

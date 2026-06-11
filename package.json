@@ -147,6 +147,11 @@
             "type": "boolean",
             "default": false,
             "description": "Ensure the file ends with a newline when formatting."
+          },
+          "xsharp.normalizeIdentifierCase": {
+            "type": "boolean",
+            "default": false,
+            "description": "When formatting, normalize the casing of user-defined identifiers (functions, classes, methods, fields, …) to match their declaration in the workspace index. Only symbols in the index are affected; local variables and unknowns are left untouched. Off by default — enable only when your project does not use the /cs case-sensitive compiler switch."
           }
         }
       },

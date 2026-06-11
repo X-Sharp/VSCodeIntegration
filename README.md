@@ -31,6 +31,8 @@ The extension and its settings are available via the command palette of Visual S
 
 - **Keyword pair highlighting** — when the cursor is on a structural keyword (`IF`, `FOR`, `WHILE`, `CLASS`, `TRY`, …), the extension highlights all matching pair boundaries (`ELSEIF`/`ELSE`/`ENDIF`, `NEXT`, `ENDDO`, `ENDCLASS`, `CATCH`/`FINALLY`/`ENDTRY`, …) using the `editor.wordHighlightStrongBackground` theme colour.  Identifier occurrences use `editor.wordHighlightBackground`.  The built-in VS Code occurrence highlighter is disabled for XSharp files to prevent interference.
 
+- **LSP code actions** — the language server provides refactoring actions such as *Generate Constructor*, *Generate Property from Field*, and *Implement Interface*. ⚠ **Generate Property from Field** derives the property name by stripping a leading `_` and upper-casing the first letter (`_name` → `Name`). Because XSharp is case-insensitive by default, a field `name` and a property `Name` are the same identifier — the action is only safe when the project compiles with the `/cs` (case-sensitive) switch. See [Known Issues](#generate-property-from-field--case-sensitivity-risk) for details.
+
 - The extension ships a TextMate grammar (`syntaxes/xsharp.tmLanguage.json`) providing syntax highlighting for all XSharp file types (`.prg`, `.xs`, `.ch`, `.xsc`, `.xsprg`, `.prgx`, `.xh`). Semantic tokens emitted by the LSP server are mapped to TextMate scopes so that any VS Code theme can colour them correctly.
 
 ## Requirements
@@ -130,7 +132,15 @@ Create .vsix with :
 
 ## Known Issues
 
-None at this time. Please report issues on the [GitHub repository](https://github.com/X-Sharp/VSCodeIntegration/issues).
+### Generate Property from Field — case-sensitivity risk
+
+The **Generate Property from Field** code action (available in the LSP server) derives the property name from the field name by stripping a leading `_` and upper-casing the first letter (e.g. `_name` → `Name`, `name` → `Name`).
+
+XSharp is **case-insensitive by default**, so a field named `name` and a property named `Name` are the **same identifier** and the compiler will reject the generated code with a duplicate-member error.
+
+**This is only safe when the project uses the `/cs` (case-sensitive) compiler switch.**  If your fields do not use a leading `_` prefix and the project does not compile with `/cs`, delete the generated property and rename either the field (add a `_` prefix) or the property before building.
+
+Please report issues on the [GitHub repository](https://github.com/X-Sharp/VSCodeIntegration/issues).
 
 ## Release Notes
 

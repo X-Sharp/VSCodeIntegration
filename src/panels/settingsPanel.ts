@@ -71,6 +71,7 @@ export function getSettingsPanelHtml(cfg: PanelConfig, nonce: string): string {
     const kwCase     = cfg.lsp.get<string>('keywordCase', 'Upper');
     const trimWS     = cfg.lsp.get<boolean>('trimTrailingWhitespace', true);
     const finalNL    = cfg.lsp.get<boolean>('insertFinalNewline', false);
+    const normId     = cfg.lsp.get<boolean>('normalizeIdentifierCase', false);
 
     // xsharp LSP — Indentation
     const indNS      = cfg.lsp.get<boolean>('indentNamespace',         false);
@@ -151,6 +152,8 @@ export function getSettingsPanelHtml(cfg: PanelConfig, nonce: string): string {
           'Remove trailing whitespace from each line when formatting.')}
       ${checkbox('insertFinalNewline', 'Insert final newline', finalNL!,
           'Ensure the file ends with a newline character when formatting.')}
+      ${checkbox('normalizeIdentifierCase', 'Normalize identifier casing', normId!,
+          'Rewrite user-defined identifiers (functions, classes, methods, fields, …) to match their declared casing when formatting. Only symbols known to the workspace index are affected. ⚠ Enable only when the project does <b>not</b> use the <code>/cs</code> case-sensitive compiler switch.')}
   `)}
 
   ${section('Indentation', `
