@@ -11,6 +11,7 @@ import { registerCreateProjectCommand } from './commands/createProjectCommand';
 import { registerOpenFolderCommand } from './commands/openFolderCommand';
 import { registerLSPClient } from './lsp/lspClient';
 import { deactivateLSPClient } from './lsp/lspClient';
+import { registerDocumentHighlights } from './features/documentHighlights';
 import { syncDialectFromProject } from './utils/autoDialect';
 import { registerLaunchConfig } from './commands/launchConfig';
 import { registerDebugAdapter } from './commands/debugAdapter';
@@ -28,6 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeWorkspaceFolders(() => syncDialectFromProject())
   );
   registerLSPClient(context);
+  registerDocumentHighlights(context);
 
   registerLaunchConfig(context);
   registerDebugAdapter(context);

@@ -2,7 +2,7 @@
   "name": "xsharp-tools",
   "displayName": "XSharp Tools",
   "description": "Build and Run XSharp Projects from VSCode",
-  "version": "0.6.7",
+  "version": "0.7.0",
   "icon": "xsharp.png",
   "publisher": "XSharp-BV",
   "repository": {
@@ -197,6 +197,11 @@
       {
         "title": "XSharp Language Server — Diagnostics",
         "properties": {
+          "xsharp.hoverKeywords": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show a one-line tooltip when hovering over built-in keywords (IF, RETURN, CLASS, …). Disable if you find keyword hover distracting."
+          },
           "xsharp.semanticDiagnostics": {
             "type": "boolean",
             "default": false,
@@ -210,6 +215,11 @@
         }
       }
     ],
+    "configurationDefaults": {
+      "[xsharp]": {
+        "editor.occurrencesHighlight": "off"
+      }
+    },
     "commands": [
       {
         "command": "xsharp.buildProject",

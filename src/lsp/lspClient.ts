@@ -12,6 +12,10 @@ import {
 
 let client: LanguageClient;
 
+export function getClient(): LanguageClient | undefined {
+    return client;
+}
+
 export function registerLSPClient(context: vscode.ExtensionContext) {
 
     const serverExe = context.asAbsolutePath(path.join('server', 'XSharpLanguageServer.exe'));
