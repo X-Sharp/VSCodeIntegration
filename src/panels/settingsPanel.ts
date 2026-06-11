@@ -85,6 +85,7 @@ export function getSettingsPanelHtml(cfg: PanelConfig, nonce: string): string {
     // xsharp LSP — Diagnostics
     const semDiag    = cfg.lsp.get<boolean>('semanticDiagnostics',   false);
     const warnUndef  = cfg.lsp.get<boolean>('warnOnUndefinedCalls',  false);
+    const hoverKw    = cfg.lsp.get<boolean>('hoverKeywords',         true);
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -176,6 +177,8 @@ export function getSettingsPanelHtml(cfg: PanelConfig, nonce: string): string {
           'Enable extra diagnostics: wrong argument count (XS0001), unknown LOCAL type (XS0003). May produce false positives.')}
       ${checkbox('warnOnUndefinedCalls','Warn on undefined function calls',  warnUndef!,
           'Flag calls to functions not found in the workspace or referenced assemblies (XS0002). Requires Semantic Diagnostics. High false-positive risk.')}
+      ${checkbox('hoverKeywords', 'Show hover tooltip for built-in keywords', hoverKw!,
+          'Show a one-line tooltip when hovering over built-in keywords (IF, RETURN, CLASS, …). Disable if you find keyword hover distracting.')}
   `)}
 
   <script nonce="${nonce}">
