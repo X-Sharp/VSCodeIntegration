@@ -218,6 +218,11 @@
     "configurationDefaults": {
       "[xsharp]": {
         "editor.occurrencesHighlight": "off"
+      },
+      "editor.semanticTokenColorCustomizations": {
+        "rules": {
+          "*.inactive": { "foreground": "#808080", "fontStyle": "" }
+        }
       }
     },
     "commands": [
