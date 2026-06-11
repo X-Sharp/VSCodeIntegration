@@ -4,6 +4,16 @@ All notable changes to the "xsharp-tools" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.7.0] - 2026-06-11
+
+### Added
+- **Keyword pair highlighting** — a new `src/features/documentHighlights.ts` module registers a cursor-change listener (100 ms debounce) that calls `textDocument/documentHighlight` directly on the LSP server and applies results as custom editor decorations.  Keyword pair boundaries (returned by the server with `DocumentHighlightKind.Write` = kind 3) use `editor.wordHighlightStrongBackground`; identifier occurrences (kind ≠ 3) use `editor.wordHighlightBackground`.  In-flight requests are cancelled automatically on rapid cursor movement.
+- **`xsharp.hoverKeywords` setting** — new boolean setting (default `true`) in the **Diagnostics** group.  Set to `false` to suppress the one-line keyword tooltip (IF, RETURN, CLASS, …) while keeping hover for symbols and local variables.  Forwarded to the LSP server via `workspace/didChangeConfiguration`.
+- **Disable built-in occurrence highlighter for XSharp** — `configurationDefaults` now sets `"editor.occurrencesHighlight": "off"` for XSharp files.  This prevents VS Code's built-in word-highlighter from competing with (and overriding) the custom `documentHighlights` decorations.
+
+### Fixed
+- **Keyword pair highlight persistence** — VS Code's built-in word-occurrence highlighter (300 ms debounce) was overwriting the LSP keyword-pair highlights with an empty result, causing a "flicker and disappear" effect.  Resolved by: (1) disabling the built-in highlighter for XSharp via `configurationDefaults`; (2) replacing the LSP provider pipeline with a direct `sendRequest` call in `documentHighlights.ts` that applies results as persistent custom decorations.
+
 ## [0.6.6] - 2026-06-09
 
 ### Added

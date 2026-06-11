@@ -29,6 +29,8 @@ The extension and its settings are available via the command palette of Visual S
 
 - Starting from Version 0.4.0, the package integrates a basic LSP Client that communicates with the [xsharp-lsp-server](https://github.com/fforay/xsharp-lsp-server). The installer (.vsix) will contain the XSharpLanguageServer.exe. The server is **no longer published as a self-contained EXE** and requires **.NET 10** to be installed on the machine. Put the EXE into the **server** folder before creating the vsix file. If the EXE is missing, the extension will show a warning and continue without IntelliSense.
 
+- **Keyword pair highlighting** — when the cursor is on a structural keyword (`IF`, `FOR`, `WHILE`, `CLASS`, `TRY`, …), the extension highlights all matching pair boundaries (`ELSEIF`/`ELSE`/`ENDIF`, `NEXT`, `ENDDO`, `ENDCLASS`, `CATCH`/`FINALLY`/`ENDTRY`, …) using the `editor.wordHighlightStrongBackground` theme colour.  Identifier occurrences use `editor.wordHighlightBackground`.  The built-in VS Code occurrence highlighter is disabled for XSharp files to prevent interference.
+
 - The extension ships a TextMate grammar (`syntaxes/xsharp.tmLanguage.json`) providing syntax highlighting for all XSharp file types (`.prg`, `.xs`, `.ch`, `.xsc`, `.xsprg`, `.prgx`, `.xh`). Semantic tokens emitted by the LSP server are mapped to TextMate scopes so that any VS Code theme can colour them correctly.
 
 ## Requirements
@@ -87,6 +89,7 @@ The parser is used for syntax colouring and IntelliSense. When a workspace is op
 
 | Setting | Default | Description |
 |---|---|---|
+| `xsharp.hoverKeywords` | `true` | Show a one-line tooltip when hovering over built-in keywords (IF, RETURN, CLASS, …). Set to `false` if you find keyword hover distracting. |
 | `xsharp.semanticDiagnostics` | `false` | Enable extra semantic diagnostics (XS0001, XS0003). May produce false positives. |
 | `xsharp.warnOnUndefinedCalls` | `false` | Warn on calls to unknown functions (XS0002). Requires semantic diagnostics. |
 
@@ -130,6 +133,11 @@ Create .vsix with :
 None at this time. Please report issues on the [GitHub repository](https://github.com/X-Sharp/VSCodeIntegration/issues).
 
 ## Release Notes
+
+### 0.7.0
+- **Keyword pair highlighting**: structural keywords and their matching boundaries (`IF`/`ENDIF`, `FOR`/`NEXT`, `CLASS`/`ENDCLASS`, …) are highlighted with a persistent strong decoration when the cursor is on any boundary keyword
+- **`xsharp.hoverKeywords` setting**: disable built-in keyword hover tooltips (IF, RETURN, CLASS, …) while keeping symbol and local-variable hover
+- Built-in VS Code occurrence highlighter disabled for XSharp files to prevent interference with custom highlights
 
 ### 0.6.6
 - **Auto-sync parser settings from `.xsproj`**: dialect, include paths, and preprocessor symbols are automatically read from the project file when opening a single-project workspace
