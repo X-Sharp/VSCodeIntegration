@@ -43,7 +43,8 @@
           ".xsc",
           ".xsprg",
           ".prgx"
-        ]
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
