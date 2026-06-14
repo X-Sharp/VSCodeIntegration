@@ -2,7 +2,7 @@
   "name": "xsharp-tools",
   "displayName": "XSharp Tools",
   "description": "Build and Run XSharp Projects from VSCode",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "icon": "xsharp.png",
   "publisher": "XSharp-BV",
   "repository": {
@@ -263,6 +263,11 @@
       {
         "title": "XSharp Language Server — Diagnostics",
         "properties": {
+          "xsharp.parserDiagnostics": {
+            "type": "boolean",
+            "default": true,
+            "description": "Publish errors and warnings from the XSharp parser (e.g. ERR_ParserError) to the Problems panel. Uncheck to suppress all parser-level diagnostics — useful when working with dialect code that the parser cannot fully handle."
+          },
           "xsharp.hoverKeywords": {
             "type": "boolean",
             "default": true,
@@ -277,6 +282,16 @@
             "type": "boolean",
             "default": false,
             "description": "When true (and semanticDiagnostics is enabled), flag calls to functions not found in the workspace index or referenced assemblies (XS0002). High false-positive risk for runtime functions."
+          }
+        }
+      },
+      {
+        "title": "XSharp Language Server — Experimental",
+        "properties": {
+          "xsharp.codeLensGitLenses": {
+            "type": "boolean",
+            "default": false,
+            "description": "[Experimental] Show git annotations in the CodeLens row: last author (git blame) and number of commits that changed the declaration line (git log -L). Requires git on PATH. Off by default — these calls add latency and the line-level change count can be slow on large repositories."
           }
         }
       }

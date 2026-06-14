@@ -58,20 +58,20 @@ function escapeHtml(s: string): string {
 export function getSettingsPanelHtml(cfg: PanelConfig, nonce: string): string {
 
     // xsharp-tools settings
-    const showErrors  = cfg.tools.get<boolean>('showErrors',  true);
+    const showErrors   = cfg.tools.get<boolean>('showErrors',  true);
     const showWarnings = cfg.tools.get<boolean>('showWarnings', true);
-    const groupByFile = cfg.tools.get<boolean>('groupByFile', true);
+    const groupByFile  = cfg.tools.get<boolean>('groupByFile', true);
 
     // xsharp LSP — Parser
-    const dialect    = cfg.lsp.get<string>('dialect',    'Core');
-    const includes   = cfg.lsp.get<string>('includePaths', '');
-    const ppSymbols  = cfg.lsp.get<string>('preprocessorSymbols', '');
+    const dialect   = cfg.lsp.get<string>('dialect',    'Core');
+    const includes  = cfg.lsp.get<string>('includePaths', '');
+    const ppSymbols = cfg.lsp.get<string>('preprocessorSymbols', '');
 
     // xsharp LSP — Formatting
-    const kwCase     = cfg.lsp.get<string>('keywordCase', 'Upper');
-    const trimWS     = cfg.lsp.get<boolean>('trimTrailingWhitespace', true);
-    const finalNL    = cfg.lsp.get<boolean>('insertFinalNewline', false);
-    const normId     = cfg.lsp.get<boolean>('normalizeIdentifierCase', false);
+    const kwCase  = cfg.lsp.get<string>('keywordCase', 'Upper');
+    const trimWS  = cfg.lsp.get<boolean>('trimTrailingWhitespace', true);
+    const finalNL = cfg.lsp.get<boolean>('insertFinalNewline', false);
+    const normId  = cfg.lsp.get<boolean>('normalizeIdentifierCase', false);
 
     // xsharp LSP — Indentation
     const indNS      = cfg.lsp.get<boolean>('indentNamespace',         false);
@@ -84,9 +84,13 @@ export function getSettingsPanelHtml(cfg: PanelConfig, nonce: string): string {
     const indPP      = cfg.lsp.get<boolean>('indentPreprocessorLines', false);
 
     // xsharp LSP — Diagnostics
-    const semDiag    = cfg.lsp.get<boolean>('semanticDiagnostics',   false);
-    const warnUndef  = cfg.lsp.get<boolean>('warnOnUndefinedCalls',  false);
-    const hoverKw    = cfg.lsp.get<boolean>('hoverKeywords',         true);
+    const parserDiag = cfg.lsp.get<boolean>('parserDiagnostics',   true);
+    const semDiag    = cfg.lsp.get<boolean>('semanticDiagnostics',  false);
+    const warnUndef  = cfg.lsp.get<boolean>('warnOnUndefinedCalls', false);
+    const hoverKw    = cfg.lsp.get<boolean>('hoverKeywords',        true);
+
+    // xsharp LSP — Experimental
+    const gitLenses = cfg.lsp.get<boolean>('codeLensGitLenses', false);
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -103,9 +107,10 @@ export function getSettingsPanelHtml(cfg: PanelConfig, nonce: string): string {
              padding: 20px 24px; max-width: 720px; }
     h2     { color: var(--vscode-textLink-activeForeground, #007acc);
              border-bottom: 1px solid var(--vscode-widget-border, #444);
-             padding-bottom: 6px; margin-bottom: 16px; }
+             padding-bottom: 6px; margin-bottom: 12px; }
     h3     { color: var(--vscode-foreground); font-size: 1em; font-weight: 700;
-             margin: 20px 0 8px; border-left: 3px solid var(--vscode-textLink-activeForeground, #007acc);
+             margin: 20px 0 8px;
+             border-left: 3px solid var(--vscode-textLink-activeForeground, #007acc);
              padding-left: 8px; }
     section { background: var(--vscode-editorWidget-background, #252526);
               border: 1px solid var(--vscode-widget-border, #444);
@@ -123,92 +128,136 @@ export function getSettingsPanelHtml(cfg: PanelConfig, nonce: string): string {
               font-family: inherit; font-size: inherit; width: 100%; max-width: 320px; }
     .description { margin: 2px 0 0 24px; font-size: 0.88em;
                    color: var(--vscode-descriptionForeground, #999); }
+
+    /* ── Tabs ── */
+    .tab-bar  { display: flex; gap: 0; margin-bottom: 16px;
+                border-bottom: 1px solid var(--vscode-widget-border, #444); }
+    .tab-btn  { padding: 7px 18px; cursor: pointer; border: none; background: none;
+                color: var(--vscode-foreground); font-family: inherit;
+                font-size: inherit; opacity: 0.65;
+                border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab-btn:hover  { opacity: 1; }
+    .tab-btn.active { opacity: 1; font-weight: 600;
+                      border-bottom-color: var(--vscode-textLink-activeForeground, #007acc); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
   </style>
 </head>
 <body>
   <h2>XSharp Settings</h2>
 
-  ${section('Build &amp; Run', `
-      ${checkbox('showErrors',  'Show Errors in Problems panel',   showErrors!)}
-      ${checkbox('showWarnings','Show Warnings in Problems panel', showWarnings!)}
-      ${checkbox('groupByFile', 'Group diagnostics by file',       groupByFile!)}
-  `)}
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="general">General</button>
+    <button class="tab-btn"        data-tab="formatting">Formatting</button>
+  </div>
 
-  ${section('Parser', `
-      ${select('dialect', 'Dialect',
-          ['Core','VO','Vulcan','Harbour','FoxPro','XPP','dBase'], dialect!,
-          'XSharp dialect used when parsing source files.')}
-      ${textInput('includePaths', 'Include Paths', includes!, 'C:\\MyApp\\Include;C:\\XSharp\\Include',
-          'Semicolon-separated list of extra directories to search for #include files.')}
-      ${textInput('preprocessorSymbols', 'Preprocessor Symbols', ppSymbols!, 'DEBUG;MYFLAG',
-          'Extra preprocessor symbols to define, separated by semicolons.')}
-  `)}
+  <!-- ── Tab 1: General ─────────────────────────────────────────────────── -->
+  <div class="tab-pane active" id="tab-general">
 
-  ${section('Formatting', `
-      ${select('keywordCase', 'Keyword Case',
-          ['Upper','Lower','Title','None'], kwCase!,
-          'Case applied to XSharp keywords by the formatter and "Fix all keyword casing" action.')}
-      ${checkbox('trimTrailingWhitespace', 'Trim trailing whitespace', trimWS!,
-          'Remove trailing whitespace from each line when formatting.')}
-      ${checkbox('insertFinalNewline', 'Insert final newline', finalNL!,
-          'Ensure the file ends with a newline character when formatting.')}
-      ${checkbox('normalizeIdentifierCase', 'Normalize identifier casing', normId!,
-          'Rewrite user-defined identifiers (functions, classes, methods, fields, …) to match their declared casing when formatting. Only symbols known to the workspace index are affected. ⚠ Enable only when the project does <b>not</b> use the <code>/cs</code> case-sensitive compiler switch.')}
-  `)}
+    ${section('Build &amp; Run', `
+        ${checkbox('showErrors',  'Show Errors in Problems panel',   showErrors!)}
+        ${checkbox('showWarnings','Show Warnings in Problems panel', showWarnings!)}
+        ${checkbox('groupByFile', 'Group diagnostics by file',       groupByFile!)}
+    `)}
 
-  ${section('Indentation', `
-      ${checkbox('indentNamespace',    'Indent entities inside NAMESPACE',                   indNS!,
-          'Indent CLASS, FUNCTION, etc. declared inside a NAMESPACE block.')}
-      ${checkbox('indentEntityContent','Indent multiline members inside CLASS / STRUCTURE',  indEntity!,
-          'Indent METHOD, PROPERTY, and other multiline declarations inside a type body.')}
-      ${checkbox('indentFieldContent', 'Indent single-line fields inside CLASS / STRUCTURE', indField!,
-          'Indent INSTANCE variables, single-line PROPERTYs, and similar declarations.')}
-      ${checkbox('indentBlockContent', 'Indent statements inside FUNCTION / METHOD body',    indBlock!,
-          'Indent the code body of FUNCTION, PROCEDURE, METHOD, ACCESS, ASSIGN, etc.')}
-      ${checkbox('indentCaseLabel',    'Indent CASE / OTHERWISE labels',                     indCase!,
-          'When checked, CASE and OTHERWISE are indented one level inside DO CASE / SWITCH. When unchecked (default) they align with the opener.')}
-      ${checkbox('indentCaseContent',  'Indent statements inside CASE / OTHERWISE',          indCaseCnt!,
-          'Indent the code inside each CASE or OTHERWISE branch.')}
-      ${checkbox('indentMultiLines',   'Indent continuation lines',                          indMulti!,
-          'Indent lines that continue a multi-line statement.')}
-      ${checkbox('indentPreprocessorLines', 'Indent preprocessor directives',               indPP!,
-          'Indent #region, #ifdef, #endif, and similar directives with the surrounding code.')}
-  `)}
+    ${section('Parser', `
+        ${select('dialect', 'Dialect',
+            ['Core','VO','Vulcan','Harbour','FoxPro','XPP','dBase'], dialect!,
+            'XSharp dialect used when parsing source files.')}
+        ${textInput('includePaths', 'Include Paths', includes!, 'C:\\MyApp\\Include;C:\\XSharp\\Include',
+            'Semicolon-separated list of extra directories to search for #include files.')}
+        ${textInput('preprocessorSymbols', 'Preprocessor Symbols', ppSymbols!, 'DEBUG;MYFLAG',
+            'Extra preprocessor symbols to define, separated by semicolons.')}
+    `)}
 
-  ${section('Diagnostics', `
-      ${checkbox('semanticDiagnostics', 'Enable semantic diagnostics',       semDiag!,
-          'Enable extra diagnostics: wrong argument count (XS0001), unknown LOCAL type (XS0003). May produce false positives.')}
-      ${checkbox('warnOnUndefinedCalls','Warn on undefined function calls',  warnUndef!,
-          'Flag calls to functions not found in the workspace or referenced assemblies (XS0002). Requires Semantic Diagnostics. High false-positive risk.')}
-      ${checkbox('hoverKeywords', 'Show hover tooltip for built-in keywords', hoverKw!,
-          'Show a one-line tooltip when hovering over built-in keywords (IF, RETURN, CLASS, …). Disable if you find keyword hover distracting.')}
-  `)}
+    ${section('Diagnostics', `
+        ${checkbox('parserDiagnostics',   'Show parser errors and warnings',    parserDiag!,
+            'Publish errors and warnings from the XSharp parser (e.g. ERR_ParserError) to the Problems panel. Uncheck to suppress all parser-level diagnostics — useful when working with dialect code that the parser cannot fully handle.')}
+        ${checkbox('semanticDiagnostics', 'Enable semantic diagnostics',        semDiag!,
+            'Enable extra diagnostics: wrong argument count (XS0001), unknown LOCAL type (XS0003). May produce false positives.')}
+        ${checkbox('warnOnUndefinedCalls','Warn on undefined function calls',   warnUndef!,
+            'Flag calls to functions not found in the workspace or referenced assemblies (XS0002). Requires Semantic Diagnostics. High false-positive risk.')}
+        ${checkbox('hoverKeywords', 'Show hover tooltip for built-in keywords', hoverKw!,
+            'Show a one-line tooltip when hovering over built-in keywords (IF, RETURN, CLASS, …). Disable if you find keyword hover distracting.')}
+    `)}
+
+    ${section('Experimental', `
+        ${checkbox('codeLensGitLenses', 'Show git annotations in CodeLens', gitLenses!,
+            'Add two extra CodeLens entries per declaration: last author (git blame) and number of commits that changed that line (git log -L). Requires git on PATH. Off by default — git calls add latency and line-level change counting can be slow on large repositories.')}
+    `)}
+
+  </div>
+
+  <!-- ── Tab 2: Formatting ──────────────────────────────────────────────── -->
+  <div class="tab-pane" id="tab-formatting">
+
+    ${section('Formatting', `
+        ${select('keywordCase', 'Keyword Case',
+            ['Upper','Lower','Title','None'], kwCase!,
+            'Case applied to XSharp keywords by the formatter and "Fix all keyword casing" action.')}
+        ${checkbox('trimTrailingWhitespace', 'Trim trailing whitespace', trimWS!,
+            'Remove trailing whitespace from each line when formatting.')}
+        ${checkbox('insertFinalNewline', 'Insert final newline', finalNL!,
+            'Ensure the file ends with a newline character when formatting.')}
+        ${checkbox('normalizeIdentifierCase', 'Normalize identifier casing', normId!,
+            'Rewrite user-defined identifiers (functions, classes, methods, fields, …) to match their declared casing when formatting. Only symbols known to the workspace index are affected. ⚠ Enable only when the project does <b>not</b> use the <code>/cs</code> case-sensitive compiler switch.')}
+    `)}
+
+    ${section('Indentation', `
+        ${checkbox('indentNamespace',    'Indent entities inside NAMESPACE',                   indNS!,
+            'Indent CLASS, FUNCTION, etc. declared inside a NAMESPACE block.')}
+        ${checkbox('indentEntityContent','Indent multiline members inside CLASS / STRUCTURE',  indEntity!,
+            'Indent METHOD, PROPERTY, and other multiline declarations inside a type body.')}
+        ${checkbox('indentFieldContent', 'Indent single-line fields inside CLASS / STRUCTURE', indField!,
+            'Indent INSTANCE variables, single-line PROPERTYs, and similar declarations.')}
+        ${checkbox('indentBlockContent', 'Indent statements inside FUNCTION / METHOD body',    indBlock!,
+            'Indent the code body of FUNCTION, PROCEDURE, METHOD, ACCESS, ASSIGN, etc.')}
+        ${checkbox('indentCaseLabel',    'Indent CASE / OTHERWISE labels',                     indCase!,
+            'When checked, CASE and OTHERWISE are indented one level inside DO CASE / SWITCH. When unchecked (default) they align with the opener.')}
+        ${checkbox('indentCaseContent',  'Indent statements inside CASE / OTHERWISE',          indCaseCnt!,
+            'Indent the code inside each CASE or OTHERWISE branch.')}
+        ${checkbox('indentMultiLines',   'Indent continuation lines',                          indMulti!,
+            'Indent lines that continue a multi-line statement.')}
+        ${checkbox('indentPreprocessorLines', 'Indent preprocessor directives',               indPP!,
+            'Indent #region, #ifdef, #endif, and similar directives with the surrounding code.')}
+    `)}
+
+  </div>
 
   <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
 
-    // Checkboxes — post { ns, setting, value }
+    // ── Tab switching ──────────────────────────────────────────────────────
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + tab).classList.add('active');
+      });
+    });
+
+    // ── Setting change handlers ────────────────────────────────────────────
+    const toolsSettings = ['showErrors', 'showWarnings', 'groupByFile'];
+
     document.querySelectorAll('input[type=checkbox]').forEach(el => {
       el.addEventListener('change', () => {
-        const id = el.id;
-        const toolsSettings = ['showErrors','showWarnings','groupByFile'];
         vscode.postMessage({
-          ns:      toolsSettings.includes(id) ? 'tools' : 'lsp',
-          setting: id,
+          ns:      toolsSettings.includes(el.id) ? 'tools' : 'lsp',
+          setting: el.id,
           type:    'boolean',
           value:   el.checked
         });
       });
     });
 
-    // Selects
     document.querySelectorAll('select').forEach(el => {
       el.addEventListener('change', () => {
         vscode.postMessage({ ns: 'lsp', setting: el.id, type: 'string', value: el.value });
       });
     });
 
-    // Text inputs (debounced 600 ms)
     document.querySelectorAll('input[type=text]').forEach(el => {
       let timer;
       el.addEventListener('input', () => {
