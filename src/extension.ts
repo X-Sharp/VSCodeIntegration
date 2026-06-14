@@ -8,6 +8,7 @@ import { registerToggleWarnings } from './commands/toggleWarnings';
 import { registerSettingsPanelCommand } from './commands/settingsPanelCommand';
 import { registerConfigProjectCommand } from './commands/configProjectCommand';
 import { registerCreateProjectCommand } from './commands/createProjectCommand';
+import { registerCodeLensCommands } from './commands/codeLensCommands';
 import { registerOpenFolderCommand } from './commands/openFolderCommand';
 import { registerLSPClient } from './lsp/lspClient';
 import { deactivateLSPClient } from './lsp/lspClient';
@@ -30,6 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
   registerLSPClient(context);
   registerDocumentHighlights(context);
+  registerCodeLensCommands(context);
 
   registerLaunchConfig(context);
   registerDebugAdapter(context);

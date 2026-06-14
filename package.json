@@ -2,7 +2,7 @@
   "name": "xsharp-tools",
   "displayName": "XSharp Tools",
   "description": "Build and Run XSharp Projects from VSCode",
-  "version": "0.7.0",
+  "version": "0.7.3",
   "icon": "xsharp.png",
   "publisher": "XSharp-BV",
   "repository": {
@@ -28,7 +28,9 @@
     "languages": [
       {
         "id": "xml",
-        "extensions": [".xsproj"]
+        "extensions": [
+          ".xsproj"
+        ]
       },
       {
         "id": "xsharp",
@@ -58,26 +60,71 @@
       {
         "language": "xsharp",
         "scopes": {
-          "keyword":       ["keyword.control.xsharp", "keyword.declaration.xsharp"],
-          "modifier":      ["storage.modifier.xsharp"],
-          "type":          ["support.type.xsharp"],
-          "class":         ["entity.name.class.xsharp"],
-          "interface":     ["entity.name.type.interface.xsharp"],
-          "struct":        ["entity.name.type.struct.xsharp"],
-          "enum":          ["entity.name.type.enum.xsharp"],
-          "enumMember":    ["constant.other.enum.xsharp"],
-          "namespace":     ["entity.name.namespace.xsharp"],
-          "typeParameter": ["entity.name.type.parameter.xsharp"],
-          "function":      ["entity.name.function.xsharp"],
-          "method":        ["entity.name.function.method.xsharp"],
-          "property":      ["variable.other.property.xsharp"],
-          "parameter":     ["variable.parameter.xsharp"],
-          "variable":      ["variable.other.xsharp"],
-          "macro":         ["keyword.control.directive.xsharp"],
-          "operator":      ["keyword.operator.xsharp"],
-          "number":        ["constant.numeric.xsharp"],
-          "string":        ["string.quoted.double.xsharp", "string.quoted.single.xsharp", "string.quoted.other.xsharp"],
-          "comment":       ["comment.line.documentation.xsharp", "comment.line.double-slash.xsharp", "comment.block.xsharp"]
+          "keyword": [
+            "keyword.control.xsharp",
+            "keyword.declaration.xsharp"
+          ],
+          "modifier": [
+            "storage.modifier.xsharp"
+          ],
+          "type": [
+            "support.type.xsharp"
+          ],
+          "class": [
+            "entity.name.class.xsharp"
+          ],
+          "interface": [
+            "entity.name.type.interface.xsharp"
+          ],
+          "struct": [
+            "entity.name.type.struct.xsharp"
+          ],
+          "enum": [
+            "entity.name.type.enum.xsharp"
+          ],
+          "enumMember": [
+            "constant.other.enum.xsharp"
+          ],
+          "namespace": [
+            "entity.name.namespace.xsharp"
+          ],
+          "typeParameter": [
+            "entity.name.type.parameter.xsharp"
+          ],
+          "function": [
+            "entity.name.function.xsharp"
+          ],
+          "method": [
+            "entity.name.function.method.xsharp"
+          ],
+          "property": [
+            "variable.other.property.xsharp"
+          ],
+          "parameter": [
+            "variable.parameter.xsharp"
+          ],
+          "variable": [
+            "variable.other.xsharp"
+          ],
+          "macro": [
+            "keyword.control.directive.xsharp"
+          ],
+          "operator": [
+            "keyword.operator.xsharp"
+          ],
+          "number": [
+            "constant.numeric.xsharp"
+          ],
+          "string": [
+            "string.quoted.double.xsharp",
+            "string.quoted.single.xsharp",
+            "string.quoted.other.xsharp"
+          ],
+          "comment": [
+            "comment.line.documentation.xsharp",
+            "comment.line.double-slash.xsharp",
+            "comment.block.xsharp"
+          ]
         }
       }
     ],
@@ -108,7 +155,15 @@
           "xsharp.dialect": {
             "type": "string",
             "default": "Core",
-            "enum": ["Core", "VO", "Vulcan", "Harbour", "FoxPro", "XPP", "dBase"],
+            "enum": [
+              "Core",
+              "VO",
+              "Vulcan",
+              "Harbour",
+              "FoxPro",
+              "XPP",
+              "dBase"
+            ],
             "description": "XSharp dialect used when parsing source files."
           },
           "xsharp.includePaths": {
@@ -129,7 +184,12 @@
           "xsharp.keywordCase": {
             "type": "string",
             "default": "Upper",
-            "enum": ["None", "Upper", "Lower", "Title"],
+            "enum": [
+              "None",
+              "Upper",
+              "Lower",
+              "Title"
+            ],
             "enumDescriptions": [
               "No automatic case conversion.",
               "Convert keywords to UPPERCASE (e.g. IF, FUNCTION).",
@@ -223,15 +283,34 @@
     ],
     "configurationDefaults": {
       "[xsharp]": {
-        "editor.occurrencesHighlight": "off"
+        "editor.occurrencesHighlight": "off",
+        "editor.formatOnType": true
       },
       "editor.semanticTokenColorCustomizations": {
         "rules": {
-          "*.inactive": { "foreground": "#808080", "fontStyle": "" }
+          "*.inactive": {
+            "foreground": "#808080",
+            "fontStyle": ""
+          }
         }
       }
     },
     "commands": [
+      {
+        "command": "xsharp.codeLens.showReferences",
+        "title": "Show References",
+        "category": "XSharp"
+      },
+      {
+        "command": "xsharp.codeLens.showAuthors",
+        "title": "Show Authors",
+        "category": "XSharp"
+      },
+      {
+        "command": "xsharp.codeLens.showHistory",
+        "title": "Show History",
+        "category": "XSharp"
+      },
       {
         "command": "xsharp.buildProject",
         "title": "Build XSharp Project"
